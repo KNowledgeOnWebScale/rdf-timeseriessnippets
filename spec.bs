@@ -4,8 +4,8 @@ Warning: Not Ready
 Shortname: RDF-TS-Snippets
 Level: none
 Status: LD
-Repository: dylanvanassche/rdf-ts-snippets-spec
-URL: https://dylanvanassche.github.io/rdf-ts-snippets-spec/
+Repository: KNowledgeOnWebScale/rdf-ts-snippets-spec
+URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
 Editor: Gerald Haesendonck
 Editor: Dylan Van Assche
 Editor: Pieter Colpaert
