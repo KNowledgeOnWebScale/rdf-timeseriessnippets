@@ -30,8 +30,8 @@ A first example illustrates the features of a `tss:Snippet`:
     { "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "2"},
     { "time": "2026-01-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "3"},
   ]"""^^cdt:List;
-  tss:from "2026-01-01T00:00:00Z"^^xsd:dateTime;
-  tss:until "2026-01-01T23:59:59Z"^^xsd:dateTime;
+  tss:from "2026-01-01T00:00.00Z"^^xsd:dateTime;
+  tss:until "2026-01-01T23:59.59Z"^^xsd:dateTime;
   tss:pointType sosa:Observation;
   tss:timePath sosa:resultTime;
   tss:valuePath sosa:hasSimpleResult;
@@ -51,30 +51,30 @@ Example 1 for example can be expanded to this RDF dataset:
 <0>
   a sosa:Observation ;
   sosa:madeBySensor <temp_sensor_1> ;
-  sosa:hasSimpleResult "5.4"^^xsd:decimal ;
+  sosa:hasSimpleResult "5.4"^^xsd:double ;
   sosa:observedProperty <temperature> ;
-  sosa:resultTime "2026-01-01T06:00:00Z"^^xsd:dateTime .
+  sosa:resultTime "2026-01-01T06:00.00Z"^^xsd:dateTime .
 
 <1>
   a sosa:Observation ;
   sosa:madeBySensor <temp_sensor_1> ;
-  sosa:hasSimpleResult "5.2"^^xsd:decimal ;
+  sosa:hasSimpleResult "5.2"^^xsd:double ;
   sosa:observedProperty <temperature> ;
-  sosa:resultTime "2026-01-01T06:59:59Z"^^xsd:dateTime .
+  sosa:resultTime "2026-01-01T06:59.59Z"^^xsd:dateTime .
 
 <2>
   a sosa:Observation ;
   sosa:madeBySensor <temp_sensor_1> ;
-  sosa:hasSimpleResult "5.2"^^xsd:decimal ;
+  sosa:hasSimpleResult "5.2"^^xsd:double ;
   sosa:observedProperty <temperature> ;
-  sosa:resultTime "2026-01-01T08:00:02Z"^^xsd:dateTime .
+  sosa:resultTime "2026-01-01T08:00.02Z"^^xsd:dateTime .
 
 <3>
   a sosa:Observation ;
   sosa:madeBySensor <temp_sensor_1> ;
-  sosa:hasSimpleResult "6.1"^^xsd:decimal ;
+  sosa:hasSimpleResult "6.1"^^xsd:double ;
   sosa:observedProperty <temperature> ;
-  sosa:resultTime "2026-01-01T09:00:00Z"^^xsd:dateTime .
+  sosa:resultTime "2026-01-01T09:00.00Z"^^xsd:dateTime .
 ```
 </div>
 
@@ -116,7 +116,7 @@ Note: Using the RDF term directly for paths is a shortcut of `tss:Path` which ca
 
 `tss:points` MUST have a `cdt:List` as datatype. Each [=Data Point=] itself MUST be a `cdt:Map` consisting
 of 2 required properties and 1 optional property:
-  - `time`: the `xsd:dateTime` of the data point
+  - `time`: the `` of the data point
   - `value`: the value of the data point with corresponding datatype.
   - `id`: the data point identifier, optionally (must be a named node).
 
@@ -125,10 +125,10 @@ All properties of datapoints are expandable to RDF, the RDF terms to use are def
 <div class="example" id="ex_points">
 ```turtle
 [
-    { "time": "2026-01-01T06:00:00Z"^^xsd:dateTime, "value": "5.4"^^xsd:double, "id": "0" },
-    { "time": "2026-01-01T06:59:59Z"^^xsd:dateTime, "value": "5.2"^^xsd:double, "id": "1" },
-    { "time": "2026-01-01T08:00:00Z"^^xsd:dateTime, "value": "5.2"^^xsd:double, "id": "2" },
-    { "time": "2026-01-01T09:00:00Z"^^xsd:dateTime, "value": "6.1"^^xsd:double, "id": "3" },
+    { "time": "2026-01-01T06:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.4"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "0" },
+    { "time": "2026-01-01T06:59:59Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "1" },
+    { "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "2" },
+    { "time": "2026-01-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "3" },
 ]
 ```
 </div>
@@ -144,7 +144,7 @@ The RDF expansion is defined for each property in the `cdt:Map` by a `tss:Path`:
   a tss:Snippet;
   tss:points """[
     { 
-      "time": "2026-01-01T06:00:00Z",
+      "time": "2026-01-01T06:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
       "value": "{
         "latitude": "50.000000"^^<http://www.w3.org/2001/XMLSchema#double>,
         "longitude": "4.000000"^^<http://www.w3.org/2001/XMLSchema#double>,
@@ -152,7 +152,7 @@ The RDF expansion is defined for each property in the `cdt:Map` by a `tss:Path`:
       }"^^<http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map>
     },
     { 
-      "time": "2026-01-01T07:00:00Z",
+      "time": "2026-01-01T07:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
       "value": "{
         "latitude": "50.100000"^^<http://www.w3.org/2001/XMLSchema#double>,
         "longitude": "4.100000"^^<http://www.w3.org/2001/XMLSchema#double>,
@@ -160,7 +160,7 @@ The RDF expansion is defined for each property in the `cdt:Map` by a `tss:Path`:
       }"^^<http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map>
     },
     { 
-      "time": "2026-01-01T08:00:00Z",
+      "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
       "value": "{
         "latitude": "50.200000"^^<http://www.w3.org/2001/XMLSchema#double>,
         "longitude": "4.200000"^^<http://www.w3.org/2001/XMLSchema#double>,
