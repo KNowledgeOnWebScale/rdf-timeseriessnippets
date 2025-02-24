@@ -116,7 +116,7 @@ Note: Using the RDF term directly for paths is a shortcut of `tss:Path` which ca
 
 `tss:points` MUST have a `cdt:List` as datatype. Each [=Data Point=] itself MUST be a `cdt:Map` consisting
 of 2 required properties and 1 optional property:
-  - `time`: the `` of the data point
+  - `time`: the timestamp of the data point.
   - `value`: the value of the data point with corresponding datatype.
   - `id`: the data point identifier, optionally (must be a named node).
 
