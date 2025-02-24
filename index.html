@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://dylanvanassche.github.io/rdf-ts-snippets-spec/" rel="canonical">
-  <meta content="ad42ae3df698e1d84ce251cba63456671ae441a7" name="revision">
+  <meta content="7013cec339a3e22848fe7cf27536aca184c90270" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2250,8 +2250,8 @@ A first example illustrates the features of a <code>tss:Snippet</code>:</p>
 <c- s>    { "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "2"},</c->
 <c- s>    { "time": "2026-01-01T09:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "3"},</c->
 <c- s>  ]"""</c-><c- p>^^</c-><c- nn>cdt</c-><c- p>:</c-><c- f>List</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-01T23:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
+  <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
+  <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-01T23:59.59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>pointType</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>timePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>valuePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-><c- p>;</c->
@@ -2269,30 +2269,30 @@ Example 1 for example can be expanded to this RDF dataset:</p>
 <pre class="language-turtle highlight"><c- g>&lt;0></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.4"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>decimal</c-> <c- p>;</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.4"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;1></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>decimal</c-> <c- p>;</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:59.59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;2></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>decimal</c-> <c- p>;</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T08:00:02Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T08:00.02Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;3></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"6.1"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>decimal</c-> <c- p>;</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"6.1"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T09:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 </pre>
    </div>
    <h2 class="heading settled" data-level="2" id="definitions"><span class="secno">2. </span><span class="content">Definitions</span><a class="self-link" href="#definitions"></a></h2>
@@ -2335,7 +2335,7 @@ If nested CDT are used, multiple path descriptions MAY be described, each of typ
 of 2 required properties and 1 optional property:</p>
    <ul>
     <li data-md>
-     <p><code>time</code>: the <code>xsd:dateTime</code> of the data point</p>
+     <p><code>time</code>: the `` of the data point</p>
     <li data-md>
      <p><code>value</code>: the value of the data point with corresponding datatype.</p>
     <li data-md>
@@ -2345,10 +2345,10 @@ of 2 required properties and 1 optional property:</p>
    <div class="example" id="ex_points">
     <a class="self-link" href="#ex_points"></a> 
 <pre class="language-turtle highlight"><c- p>[</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.4"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"0"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"1"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T08:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"2"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"6.1"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"3"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.4"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"0"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"1"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T08:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"2"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"6.1"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"3"</c-> <c- p>},</c->
 <c- p>]</c->
 </pre>
    </div>
@@ -2361,7 +2361,7 @@ The RDF expansion is defined for each property in the <code>cdt:Map</code> by a 
   <c- b>a</c-> <c- nn>tss</c-><c- p>:</c-><c- f>Snippet</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>points</c-> <c- s>"""[</c->
 <c- s>    { </c->
-<c- s>      "time": "2026-01-01T06:00:00Z",</c->
+<c- s>      "time": "2026-01-01T06:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
 <c- s>      "value": "{</c->
 <c- s>        "latitude": "50.000000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
 <c- s>        "longitude": "4.000000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
@@ -2369,7 +2369,7 @@ The RDF expansion is defined for each property in the <code>cdt:Map</code> by a 
 <c- s>      }"^^&lt;http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map></c->
 <c- s>    },</c->
 <c- s>    { </c->
-<c- s>      "time": "2026-01-01T07:00:00Z",</c->
+<c- s>      "time": "2026-01-01T07:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
 <c- s>      "value": "{</c->
 <c- s>        "latitude": "50.100000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
 <c- s>        "longitude": "4.100000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
@@ -2377,7 +2377,7 @@ The RDF expansion is defined for each property in the <code>cdt:Map</code> by a 
 <c- s>      }"^^&lt;http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map></c->
 <c- s>    },</c->
 <c- s>    { </c->
-<c- s>      "time": "2026-01-01T08:00:00Z",</c->
+<c- s>      "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
 <c- s>      "value": "{</c->
 <c- s>        "latitude": "50.200000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
 <c- s>        "longitude": "4.200000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
