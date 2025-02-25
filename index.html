@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/" rel="canonical">
-  <meta content="3f91491bbf8178852823654c41b8730f9d99bec7" name="revision">
+  <meta content="7941168bbd8c077df5bf5e9cade726d5e6e844dd" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2217,7 +2217,6 @@ Parts of this work may be from another specification document.  If so, those par
      <ol class="toc">
       <li><a href="#paths"><span class="secno">3.1</span> <span class="content">Paths</span></a>
       <li><a href="#points"><span class="secno">3.2</span> <span class="content">Data Points</span></a>
-      <li><a href="#extended-data-points"><span class="secno">3.3</span> <span class="content">Extended Data Points</span></a>
      </ol>
     <li><a href="#conformance"><span class="secno"></span> <span class="content"> Conformance</span></a>
     <li>
@@ -2320,18 +2319,9 @@ Example 1 for example can be expanded to this RDF dataset:</p>
    <p class="issue" id="issue-3026d520"><a class="self-link" href="#issue-3026d520"></a> Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include valuePath, pointType and timePath. However, we can still analyze and visualize the data without that information.</p>
    <h3 class="heading settled" data-level="3.1" id="paths"><span class="secno">3.1. </span><span class="content">Paths</span><a class="self-link" href="#paths"></a></h3>
    <p>A <a data-link-type="dfn" href="#snippet" id="ref-for-snippet②">Snippet</a> has multiple path descriptions to define the mapping between CDT and RDF.
-Each of these path descriptions expect an RDF term to use during expansion.
-If nested CDT are used, multiple path descriptions MAY be described, each of type <code>tss:Path</code>.</p>
-   <p>A <code>tss:Path</code> MUST have the following properties:</p>
-   <ul>
-    <li data-md>
-     <p><code>tss:term</code>: the RDF term to use during expansion of the path.</p>
-    <li data-md>
-     <p><code>tss:path</code>: the property name to match with the RDF term.</p>
-   </ul>
-   <p class="note" role="note"><span class="marker">Note:</span> Using the RDF term directly for paths is a shortcut of <code>tss:Path</code> which can only be used when a simple datatypes are present.</p>
+A path defines which RDF term must be used for each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point">Data Point</a> properties.</p>
    <h3 class="heading settled" data-level="3.2" id="points"><span class="secno">3.2. </span><span class="content">Data Points</span><a class="self-link" href="#points"></a></h3>
-   <p><code>tss:points</code> MUST have a <code>cdt:List</code> as datatype. Each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point">Data Point</a> itself MUST be a <code>cdt:Map</code> consisting
+   <p><code>tss:points</code> MUST have a <code>cdt:List</code> as datatype. Each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point①">Data Point</a> itself MUST be a <code>cdt:Map</code> consisting
 of 2 required properties and 1 optional property:</p>
    <ul>
     <li data-md>
@@ -2350,51 +2340,6 @@ of 2 required properties and 1 optional property:</p>
     <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T08:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"2"</c-> <c- p>},</c->
     <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"6.1"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"3"</c-> <c- p>},</c->
 <c- p>]</c->
-</pre>
-   </div>
-   <h3 class="heading settled" data-level="3.3" id="extended-data-points"><span class="secno">3.3. </span><span class="content">Extended Data Points</span><a class="self-link" href="#extended-data-points"></a></h3>
-   <p><a data-link-type="dfn" href="#data-point" id="ref-for-data-point①">Data Point</a>s can have extended values as well such as <code>cdt:Map</code> to allow complex values to be included.
-The RDF expansion is defined for each property in the <code>cdt:Map</code> by a <code>tss:Path</code>:</p>
-   <div class="example" id="ex_snippet_advanced_ttl">
-    <a class="self-link" href="#ex_snippet_advanced_ttl"></a> 
-<pre class="language-turtle highlight"><c- g>&lt;snippet/2026-01-01></c->
-  <c- b>a</c-> <c- nn>tss</c-><c- p>:</c-><c- f>Snippet</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>points</c-> <c- s>"""[</c->
-<c- s>    { </c->
-<c- s>      "time": "2026-01-01T06:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
-<c- s>      "value": "{</c->
-<c- s>        "latitude": "50.000000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "longitude": "4.000000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "temperature": "5.21"^^&lt;http://www.w3.org/2001/XMLSchema#double></c->
-<c- s>      }"^^&lt;http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map></c->
-<c- s>    },</c->
-<c- s>    { </c->
-<c- s>      "time": "2026-01-01T07:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
-<c- s>      "value": "{</c->
-<c- s>        "latitude": "50.100000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "longitude": "4.100000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "temperature": "7.61"^^&lt;http://www.w3.org/2001/XMLSchema#double></c->
-<c- s>      }"^^&lt;http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map></c->
-<c- s>    },</c->
-<c- s>    { </c->
-<c- s>      "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>,</c->
-<c- s>      "value": "{</c->
-<c- s>        "latitude": "50.200000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "longitude": "4.200000"^^&lt;http://www.w3.org/2001/XMLSchema#double>,</c->
-<c- s>        "temperature": "4.21"^^&lt;http://www.w3.org/2001/XMLSchema#double></c->
-<c- s>      }"^^&lt;http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map></c->
-<c- s>    }</c->
-<c- s>  ]"""</c-><c- p>^^</c-><c- nn>cdt</c-><c- p>:</c-><c- f>List</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-01T23:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>pointType</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>timePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>valuePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>about</c-> <c- p>[</c->
-    <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-><c- p>;</c->
-    <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-><c- p>;</c->
-  <c- p>];</c->
-<c- p>.</c->
 </pre>
    </div>
   </main>
@@ -2761,7 +2706,7 @@ function parseHTML(markup) {
 "use strict";
 {
 let dfnPanelData = {
-"data-point": {"dfnID":"data-point","dfnText":"Data Point","external":false,"refSections":[{"refs":[{"id":"ref-for-data-point"}],"title":"3.2. Data Points"},{"refs":[{"id":"ref-for-data-point\u2460"}],"title":"3.3. Extended Data Points"}],"url":"#data-point"},
+"data-point": {"dfnID":"data-point","dfnText":"Data Point","external":false,"refSections":[{"refs":[{"id":"ref-for-data-point"}],"title":"3.1. Paths"},{"refs":[{"id":"ref-for-data-point\u2460"}],"title":"3.2. Data Points"}],"url":"#data-point"},
 "snippet": {"dfnID":"snippet","dfnText":"Snippet","external":false,"refSections":[{"refs":[{"id":"ref-for-snippet"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-snippet\u2460"}],"title":"3. Snippet properties"},{"refs":[{"id":"ref-for-snippet\u2461"}],"title":"3.1. Paths"}],"url":"#snippet"},
 "time-series": {"dfnID":"time-series","dfnText":"Time Series","external":false,"refSections":[{"refs":[{"id":"ref-for-time-series"},{"id":"ref-for-time-series\u2460"}],"title":"2. Definitions"}],"url":"#time-series"},
 };
