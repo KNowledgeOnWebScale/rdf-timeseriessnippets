@@ -103,14 +103,7 @@ Issue: Discuss whether these properties are required or optional. E.g., a publis
 ## Paths ## {#paths}
 
 A [=Snippet=] has multiple path descriptions to define the mapping between CDT and RDF.
-Each of these path descriptions expect an RDF term to use during expansion.
-If nested CDT are used, multiple path descriptions MAY be described, each of type `tss:Path`.
-
-A `tss:Path` MUST have the following properties:
-- `tss:term`: the RDF term to use during expansion of the path.
-- `tss:path`: the property name to match with the RDF term.
-
-Note: Using the RDF term directly for paths is a shortcut of `tss:Path` which can only be used when a simple datatypes are present.
+A path defines which RDF term must be used for each [=Data Point=] properties.
 
 ## Data Points ## {#points}
 
@@ -130,53 +123,5 @@ All properties of datapoints are expandable to RDF, the RDF terms to use are def
     { "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "2" },
     { "time": "2026-01-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "3" },
 ]
-```
-</div>
-
-## Extended Data Points ## {#extended-data-points}
-
-[=Data Point=]s can have extended values as well such as `cdt:Map` to allow complex values to be included.
-The RDF expansion is defined for each property in the `cdt:Map` by a `tss:Path`:
-
-<div class="example" id="ex_snippet_advanced_ttl">
-```turtle
-<snippet/2026-01-01>
-  a tss:Snippet;
-  tss:points """[
-    { 
-      "time": "2026-01-01T06:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
-      "value": "{
-        "latitude": "50.000000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "longitude": "4.000000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "temperature": "5.21"^^<http://www.w3.org/2001/XMLSchema#double>
-      }"^^<http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map>
-    },
-    { 
-      "time": "2026-01-01T07:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
-      "value": "{
-        "latitude": "50.100000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "longitude": "4.100000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "temperature": "7.61"^^<http://www.w3.org/2001/XMLSchema#double>
-      }"^^<http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map>
-    },
-    { 
-      "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>,
-      "value": "{
-        "latitude": "50.200000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "longitude": "4.200000"^^<http://www.w3.org/2001/XMLSchema#double>,
-        "temperature": "4.21"^^<http://www.w3.org/2001/XMLSchema#double>
-      }"^^<http://w3id.org/awslabs/neptune/SPARQL-CDTs/Map>
-    }
-  ]"""^^cdt:List;
-  tss:from "2026-01-01T00:00:00Z"^^xsd:dateTime;
-  tss:until "2026-01-01T23:59:59Z"^^xsd:dateTime;
-  tss:pointType sosa:Observation;
-  tss:timePath sosa:resultTime;
-  tss:valuePath sosa:hasSimpleResult;
-  tss:about [
-    sosa:madeBySensor <temp_sensor_1>;
-    sosa:observedProperty <temperature>;
-  ];
-.
 ```
 </div>
