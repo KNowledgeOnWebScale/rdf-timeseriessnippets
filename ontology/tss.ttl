@@ -1,0 +1,96 @@
+@prefix tss: <https://w3id.org/tss#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix cdt: <http://w3id.org/awslabs/neptune/SPARQL-CDTs/> .
+@base <https://w3id.org/tss#> .                                                 
+                                                                  
+<https://w3id.org/tss#> rdf:type owl:Ontology ;
+                          owl:versionIRI <https://w3id.org/tss/0.1.0#> ;
+                          owl:versionInfo "0.1.0" ;
+                          dcterms:modified "2025-02-25" ;
+                          dcterms:description "Ontology for defining Time Series Snippets in RDF."@en ;
+                          dcterms:title "RDF Time Series Snippets"@en ;
+                          dcterms:contributor <https://dylannvanassche.be/#me>, <https://pietercolpaert.be/#me> ;
+                          vann:preferredNamespacePrefix "tss" ;
+                          vann:preferredNamespaceUri "https://w3id.org/tss#" ;
+.
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  https://w3id.org/tss/about
+tss:about a owl:ObjectProperty;
+    rdfs:label "about";
+    rdfs:comment "Describes the Snippet."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:range tss:About;
+.
+
+###  https://w3id.org/tss/from
+tss:from a owl:DatatypeProperty;
+    rdfs:label "from";
+    rdfs:comment "Timestamp to indicate the beginning of the Snippet's period (including)."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:range xsd:dateTime;
+.
+
+###  https://w3id.org/tss/until
+tss:until a owl:DatatypeProperty;
+    rdfs:label "until";
+    rdfs:comment "Timestamp to indicate the end of the Snippet's period (excluding)."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:range xsd:dateTime;
+.
+
+###  https://w3id.org/tss/pointType
+tss:pointType a owl:ObjectProperty;
+    rdfs:label "pointType";
+    rdfs:comment "RDF type of each data point."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+.
+
+###  https://w3id.org/tss/points
+tss:points a owl:DatatypeProperty;
+    rdfs:label "points";
+    rdfs:comment "Data points of the Snippet."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:range cdt:Map;
+.
+
+###  https://w3id.org/tss/timePath
+tss:timePath a owl:ObjectProperty;
+    rdfs:label "timePath";
+    rdfs:comment "SHACL property path to the timestamp of the data point entity."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+.
+
+###  https://w3id.org/tss/valuePath
+tss:valuePath a owl:ObjectProperty;
+    rdfs:label "valuePath";
+    rdfs:comment "SHACL property path to the value of the data point entity."@en;
+    rdfs:domain tss:Snippet;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+.
+
+#################################################################
+#    Classes
+#################################################################
+
+###  https://w3id.org/tss/Snippet
+tss:Snippet rdf:type owl:Class ;
+    rdfs:label "Snippet";
+    rdfs:comment "RDF Time Series Snippet"@en;
+    rdfs:isDefinedBy <http://w3id.org/tss/>;
+.
