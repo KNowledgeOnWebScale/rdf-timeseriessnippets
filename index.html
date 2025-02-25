@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/" rel="canonical">
-  <meta content="81d15da2593c0022c6c279ac0baa94391635da75" name="revision">
+  <meta content="3f91491bbf8178852823654c41b8730f9d99bec7" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2172,7 +2172,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">RDF Time Series Snippets</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Living Document, <time class="dt-updated" datetime="2025-02-24">24 February 2025</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Living Document, <time class="dt-updated" datetime="2025-02-25">25 February 2025</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2181,9 +2181,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <dd><a href="https://github.com/KNowledgeOnWebScale/rdf-ts-snippets-spec/issues/">GitHub</a>
      <dd><a href="#issues-index">Inline In Spec</a>
      <dt class="editor">Editors:
-     <dd class="editor p-author h-card vcard"><span class="p-name fn">Gerald Haesendonck</span>
      <dd class="editor p-author h-card vcard"><span class="p-name fn">Dylan Van Assche</span>
-     <dd class="editor p-author h-card vcard"><span class="p-name fn">Pieter Colpaert</span>
+     <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="https://pietercolpaert.be">Pieter Colpaert</a>
     </dl>
    </div>
    <div data-fill-with="warning">
@@ -2197,7 +2196,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </div>
    <p class="copyright" data-fill-with="copyright"><a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"><img alt="CC0" height="15" src="https://licensebuttons.net/p/zero/1.0/80x15.png" width="80"></a> To the extent possible under law, the editors have waived all copyright
 and related or neighboring rights to this work.
-In addition, as of 24 February 2025,
+In addition, as of 25 February 2025,
 the editors have made this specification available under the <a href="https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0" rel="license">Open Web Foundation Agreement Version 1.0</a>,
 which is available at https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0.
 Parts of this work may be from another specification document.  If so, those parts are instead covered by the license of that specification document. </p>
@@ -2239,6 +2238,7 @@ Parts of this work may be from another specification document.  If so, those par
    <p>Sensor observations, positioning data, measurements, mobility information... are commonly published as Time Series data with a timestamp and a value.
 Representing Time Series data in RDF drastically raises the verbosity, as each data point is often given its own identifier, for which contextual information is repeated on all data points.
 With Time Series Snippets, we allow a data publisher to compact the data points in subsets of a Time Series, called the Snippet, by using <a href="https://awslabs.github.io/SPARQL-CDTs/spec/latest.html">SPARQL Common Data Types</a> such as <code>cdt:List</code> and <code>cdt:Map</code>.
+This way, you can greatly reduce the amount of triples when describing a Time Series.
 A first example illustrates the features of a <code>tss:Snippet</code>:</p>
    <div class="example" id="simple_example_snippet">
     <a class="self-link" href="#simple_example_snippet"></a> 
@@ -2250,8 +2250,8 @@ A first example illustrates the features of a <code>tss:Snippet</code>:</p>
 <c- s>    { "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "2"},</c->
 <c- s>    { "time": "2026-01-01T09:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "3"},</c->
 <c- s>  ]"""</c-><c- p>^^</c-><c- nn>cdt</c-><c- p>:</c-><c- f>List</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
-  <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-01T23:59.59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
+  <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
+  <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-02T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>pointType</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>timePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>valuePath</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-><c- p>;</c->
@@ -2271,28 +2271,28 @@ Example 1 for example can be expanded to this RDF dataset:</p>
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.4"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;1></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:59.59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;2></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T08:00.02Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T08:00:02Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
 <c- g>&lt;3></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"6.1"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
-  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T09:00.00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
+  <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 </pre>
    </div>
    <h2 class="heading settled" data-level="2" id="definitions"><span class="secno">2. </span><span class="content">Definitions</span><a class="self-link" href="#definitions"></a></h2>
