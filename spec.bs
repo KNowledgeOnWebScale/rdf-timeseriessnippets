@@ -18,6 +18,13 @@ Sensor observations, positioning data, measurements, mobility information... are
 Representing Time Series data in RDF drastically raises the verbosity, as each data point is often given its own identifier, for which contextual information is repeated on all data points.
 With Time Series Snippets, we allow a data publisher to compact the data points in subsets of a Time Series, called the Snippet, by using [SPARQL Common Data Types](https://awslabs.github.io/SPARQL-CDTs/spec/latest.html) such as `cdt:List` and `cdt:Map`.
 This way, you can greatly reduce the amount of triples when describing a Time Series.
+
+Time Series Snippets use the following prefix and namespace:
+
+```turtle
+@prefix tss: <https://w3id.org/tss#>;
+```
+
 A first example illustrates the features of a `tss:Snippet`:
 
 <div class="example" id="simple_example_snippet">
