@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/" rel="canonical">
-  <meta content="64764d2b1c173f15455b6597db642ed334397796" name="revision">
+  <meta content="2da65c1ae707b9458d3b871ffcb0804d27ba9c5f" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2237,8 +2237,11 @@ Parts of this work may be from another specification document.  If so, those par
    <p>Sensor observations, positioning data, measurements, mobility information... are commonly published as Time Series data with a timestamp and a value.
 Representing Time Series data in RDF drastically raises the verbosity, as each data point is often given its own identifier, for which contextual information is repeated on all data points.
 With Time Series Snippets, we allow a data publisher to compact the data points in subsets of a Time Series, called the Snippet, by using <a href="https://awslabs.github.io/SPARQL-CDTs/spec/latest.html">SPARQL Common Data Types</a> such as <code>cdt:List</code> and <code>cdt:Map</code>.
-This way, you can greatly reduce the amount of triples when describing a Time Series.
-A first example illustrates the features of a <code>tss:Snippet</code>:</p>
+This way, you can greatly reduce the amount of triples when describing a Time Series.</p>
+   <p>Time Series Snippets use the following prefix and namespace:</p>
+<pre class="language-turtle highlight"><c- k>@prefix</c-> <c- nn>tss:</c-> <c- g>&lt;https://w3id.org/tss#></c-><c- p>;</c->
+</pre>
+   <p>A first example illustrates the features of a <code>tss:Snippet</code>:</p>
    <div class="example" id="simple_example_snippet">
     <a class="self-link" href="#simple_example_snippet"></a> 
 <pre class="language-turtle highlight"><c- g>&lt;snippet/2026-01-01></c->
