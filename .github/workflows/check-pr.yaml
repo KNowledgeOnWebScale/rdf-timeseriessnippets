@@ -1,0 +1,30 @@
+name: Check PRs against the Bikeshed spec
+
+on:
+  # Runs on PRs targeting the default branch
+  pull_request:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build spec
+        run: |
+          echo "Installing bikeshed"
+          sudo apt install pipx
+          pipx install bikeshed
+          echo "Building spec"
+          bikeshed spec spec.bs
+      - name: Turtle validation
+        run: |
+          echo "Validating RDF syntax"
+          sudo apt install nodejs npm
+          npm install -g turtle-validator
+          ttl tss.ttl
+
