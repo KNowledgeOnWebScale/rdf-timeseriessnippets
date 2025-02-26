@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/" rel="canonical">
-  <meta content="42622627cf8556ceb1897445496766e8c9479b33" name="revision">
+  <meta content="7a013c4e49695de2bdd2f5012eb7f302a0bfc59c" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2178,7 +2178,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <dt>This version:
      <dd><a class="u-url" href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/">https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/</a>
      <dt>Issue Tracking:
-     <dd><a href="https://github.com/KNowledgeOnWebScale/rdf-ts-snippets-spec/issues/">GitHub</a>
+     <dd><a href="https://github.com/KNowledgeOnWebScale/rdf-timeseriessnippets/issues/">GitHub</a>
      <dd><a href="#issues-index">Inline In Spec</a>
      <dt class="editor">Editors:
      <dd class="editor p-author h-card vcard"><a class="p-name fn u-url url" href="https://dylanvanassche.be/#me">Dylan Van Assche</a>
@@ -2215,8 +2215,8 @@ Parts of this work may be from another specification document.  If so, those par
     <li>
      <a href="#properties"><span class="secno">3</span> <span class="content">Snippet properties</span></a>
      <ol class="toc">
-      <li><a href="#paths"><span class="secno">3.1</span> <span class="content">Paths</span></a>
-      <li><a href="#points"><span class="secno">3.2</span> <span class="content">Data Points</span></a>
+      <li><a href="#points"><span class="secno">3.1</span> <span class="content">Data Points</span></a>
+      <li><a href="#expanding"><span class="secno">3.2</span> <span class="content">Expanding data points</span></a>
      </ol>
     <li><a href="#conformance"><span class="secno"></span> <span class="content"> Conformance</span></a>
     <li>
@@ -2305,36 +2305,32 @@ Example 1 for example can be expanded to this RDF dataset:</p>
    <p>Each <a data-link-type="dfn" href="#snippet" id="ref-for-snippet①">Snippet</a> SHOULD have the following properties:</p>
    <ul>
     <li data-md>
-     <p><code>tss:points</code>: a <code>cdt:List</code> of data points where each data point is a <code>cdt:Map</code>.</p>
+     <p><code>tss:points</code>: a <code>cdt:List</code> of data points where each data point is a <code>cdt:Map</code> with a <code>time</code> key using <code>xsd:dateTime</code> value, with a <code>value</code> key for which the value is annotated with a datatype, and optionally an <code>id</code> key for which the value is an IRI for the current data point.</p>
     <li data-md>
-     <p><code>tss:from</code>: starting timestamp (including) of the period covered by <code>tss:points</code>.</p>
+     <p><code>tss:from</code>: starting timestamp (including) of the period covered by <code>tss:points</code> using an <code>xsd:dateTime</code>.</p>
     <li data-md>
-     <p><code>tss:until</code>: until this timestamp (excluding) of the period covered by <code>tss:points</code>.</p>
+     <p><code>tss:until</code>: until this timestamp (excluding) of the period covered by <code>tss:points</code> using an <code>xsd:dateTime</code>.</p>
     <li data-md>
-     <p><code>tss:about</code>: an entity description which provides the data points in <code>tss:points</code>.</p>
+     <p><code>tss:about</code>: contains statements about a blank node. The statements can be asserted on top of all data points in <code>tss:points</code> when expanding the Snippet.</p>
     <li data-md>
-     <p><code>tss:pointType</code>: the RDF type of the data points in <code>tss:points</code>.</p>
+     <p><code>tss:pointType</code>: the RDF type of all data points in <code>tss:points</code>.</p>
     <li data-md>
-     <p><code>tss:timePath</code>: the term to use for expanding the <code>time</code> property in <code>tss:points</code>.</p>
+     <p><code>tss:timePath</code>: the path to use for expanding the <code>time</code> property in <code>tss:points</code>.</p>
     <li data-md>
-     <p><code>tss:valuePath</code>: the term to use for expanding the <code>value</code> property in <code>tss:points</code>.</p>
+     <p><code>tss:valuePath</code>: the path to use for expanding the <code>value</code> property in <code>tss:points</code>.</p>
    </ul>
    <p class="issue" id="issue-3026d520"><a class="self-link" href="#issue-3026d520"></a> Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include valuePath, pointType and timePath. However, we can still analyze and visualize the data without that information.</p>
-   <h3 class="heading settled" data-level="3.1" id="paths"><span class="secno">3.1. </span><span class="content">Paths</span><a class="self-link" href="#paths"></a></h3>
-   <p>A <a data-link-type="dfn" href="#snippet" id="ref-for-snippet②">Snippet</a> has multiple path descriptions to define the mapping between CDT and RDF.
-A path defines which RDF term must be used for each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point">Data Point</a> properties.</p>
-   <h3 class="heading settled" data-level="3.2" id="points"><span class="secno">3.2. </span><span class="content">Data Points</span><a class="self-link" href="#points"></a></h3>
-   <p><code>tss:points</code> MUST have a <code>cdt:List</code> as datatype. Each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point①">Data Point</a> itself MUST be a <code>cdt:Map</code> consisting
+   <h3 class="heading settled" data-level="3.1" id="points"><span class="secno">3.1. </span><span class="content">Data Points</span><a class="self-link" href="#points"></a></h3>
+   <p><code>tss:points</code> MUST have a <code>cdt:List</code> as datatype. Each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point">Data Point</a> itself MUST be a <code>cdt:Map</code> consisting
 of 2 required properties and 1 optional property:</p>
    <ul>
     <li data-md>
-     <p><code>time</code>: the timestamp of the data point.</p>
+     <p><code>time</code>: the timestamp of the data point using an <code>xsd:dateTime</code>.</p>
     <li data-md>
      <p><code>value</code>: the value of the data point with corresponding datatype.</p>
     <li data-md>
-     <p><code>id</code>: the data point identifier, optionally (must be a named node).</p>
+     <p><code>id</code>: the data point identifier is optionally. When set, this MUST be a named node.</p>
    </ul>
-   <p>All properties of datapoints are expandable to RDF, the RDF terms to use are defined through the path descriptions of a Snippet.</p>
    <div class="example" id="ex_points">
     <a class="self-link" href="#ex_points"></a> 
 <pre class="language-turtle highlight"><c- p>[</c->
@@ -2345,6 +2341,23 @@ of 2 required properties and 1 optional property:</p>
 <c- p>]</c->
 </pre>
    </div>
+   <h3 class="heading settled" data-level="3.2" id="expanding"><span class="secno">3.2. </span><span class="content">Expanding data points</span><a class="self-link" href="#expanding"></a></h3>
+   <p>When <code>tss:timePath</code> and <code>tss:valuePath</code> are set (mind this is not required), a <a data-link-type="dfn" href="#snippet" id="ref-for-snippet②">Snippet</a> can be expanded to a verbose RDF representation, for example using its original vocabulary.
+The properties <code>tss:about</code> and <code>tss:pointType</code> will influence that process.</p>
+   <p>For each <a data-link-type="dfn" href="#data-point" id="ref-for-data-point①">Data Point</a>, it can be mapped as follows:</p>
+   <ol>
+    <li data-md>
+     <p>When the <code>id</code> is set and it is a valid IRI, set this id as the subject. If it is not, create a new blank node and set this as the subject.</p>
+    <li data-md>
+     <p>When <code>tss:pointType</code> is set, create a triple stating this id is of <code>rdf:type</code> the object of the pointType triple.</p>
+    <li data-md>
+     <p>Create a triple for the time based on the <code>tss:timePath</code>. For unknown intermediary named nodes, a blank node is to be created.</p>
+    <li data-md>
+     <p>Similarly, create a triple for the value based on the <code>tss:valuePath</code>.</p>
+    <li data-md>
+     <p>Now apply the <code>tss:about</code> blank node entity to this point.</p>
+   </ol>
+   <p class="issue" id="issue-5e1f29f8"><a class="self-link" href="#issue-5e1f29f8"></a> Discuss whether a SHACL Path makes sense to use as the intermediary steps will be mapped to blank nodes. Probably we could simplify here and make this a <code>tss:timeProperty</code> instead?</p>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="conformance"><span class="content"> Conformance</span><a class="self-link" href="#conformance"></a></h2>
@@ -2508,6 +2521,7 @@ of 2 required properties and 1 optional property:</p>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
    <div class="issue"> Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include valuePath, pointType and timePath. However, we can still analyze and visualize the data without that information. <a class="issue-return" href="#issue-3026d520" title="Jump to section">↵</a></div>
+   <div class="issue"> Discuss whether a SHACL Path makes sense to use as the intermediary steps will be mapped to blank nodes. Probably we could simplify here and make this a <code>tss:timeProperty</code> instead? <a class="issue-return" href="#issue-5e1f29f8" title="Jump to section">↵</a></div>
   </div>
 <script>/* Boilerplate: script-dom-helper */
 "use strict";
@@ -2709,8 +2723,8 @@ function parseHTML(markup) {
 "use strict";
 {
 let dfnPanelData = {
-"data-point": {"dfnID":"data-point","dfnText":"Data Point","external":false,"refSections":[{"refs":[{"id":"ref-for-data-point"}],"title":"3.1. Paths"},{"refs":[{"id":"ref-for-data-point\u2460"}],"title":"3.2. Data Points"}],"url":"#data-point"},
-"snippet": {"dfnID":"snippet","dfnText":"Snippet","external":false,"refSections":[{"refs":[{"id":"ref-for-snippet"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-snippet\u2460"}],"title":"3. Snippet properties"},{"refs":[{"id":"ref-for-snippet\u2461"}],"title":"3.1. Paths"}],"url":"#snippet"},
+"data-point": {"dfnID":"data-point","dfnText":"Data Point","external":false,"refSections":[{"refs":[{"id":"ref-for-data-point"}],"title":"3.1. Data Points"},{"refs":[{"id":"ref-for-data-point\u2460"}],"title":"3.2. Expanding data points"}],"url":"#data-point"},
+"snippet": {"dfnID":"snippet","dfnText":"Snippet","external":false,"refSections":[{"refs":[{"id":"ref-for-snippet"}],"title":"1. Introduction"},{"refs":[{"id":"ref-for-snippet\u2460"}],"title":"3. Snippet properties"},{"refs":[{"id":"ref-for-snippet\u2461"}],"title":"3.2. Expanding data points"}],"url":"#snippet"},
 "time-series": {"dfnID":"time-series","dfnText":"Time Series","external":false,"refSections":[{"refs":[{"id":"ref-for-time-series"},{"id":"ref-for-time-series\u2460"}],"title":"2. Definitions"}],"url":"#time-series"},
 };
 
