@@ -1490,7 +1490,7 @@ Possible extra rowspan handling
 </style>
   <meta content="Bikeshed version 60c422380, updated Thu Feb 20 19:11:22 2025 -0800" name="generator">
   <link href="https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/" rel="canonical">
-  <meta content="7941168bbd8c077df5bf5e9cade726d5e6e844dd" name="revision">
+  <meta content="64764d2b1c173f15455b6597db642ed334397796" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -2172,7 +2172,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">RDF Time Series Snippets</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Living Document, <time class="dt-updated" datetime="2025-02-25">25 February 2025</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Living Document, <time class="dt-updated" datetime="2025-02-26">26 February 2025</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2196,7 +2196,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </div>
    <p class="copyright" data-fill-with="copyright"><a href="http://creativecommons.org/publicdomain/zero/1.0/" rel="license"><img alt="CC0" height="15" src="https://licensebuttons.net/p/zero/1.0/80x15.png" width="80"></a> To the extent possible under law, the editors have waived all copyright
 and related or neighboring rights to this work.
-In addition, as of 25 February 2025,
+In addition, as of 26 February 2025,
 the editors have made this specification available under the <a href="https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0" rel="license">Open Web Foundation Agreement Version 1.0</a>,
 which is available at https://www.openwebfoundation.org/the-agreements/the-owf-1-0-agreements-granted-claims/owfa-1-0.
 Parts of this work may be from another specification document.  If so, those parts are instead covered by the license of that specification document. </p>
@@ -2244,10 +2244,10 @@ A first example illustrates the features of a <code>tss:Snippet</code>:</p>
 <pre class="language-turtle highlight"><c- g>&lt;snippet/2026-01-01></c->
   <c- b>a</c-> <c- nn>tss</c-><c- p>:</c-><c- f>Snippet</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>points</c-> <c- s>"""[</c->
-<c- s>    { "time": "2026-01-01T06:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.4"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "0"},</c->
-<c- s>    { "time": "2026-01-01T06:59:59Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "1"},</c->
-<c- s>    { "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "2"},</c->
-<c- s>    { "time": "2026-01-01T09:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "3"},</c->
+<c- s>    { "time": "2026-01-01T06:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.4"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/0"},</c->
+<c- s>    { "time": "2026-01-01T06:59:59Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/1"},</c->
+<c- s>    { "time": "2026-01-01T08:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/2"},</c->
+<c- s>    { "time": "2026-01-01T09:00:00Z"^^&lt;http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^&lt;http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/3"},</c->
 <c- s>  ]"""</c-><c- p>^^</c-><c- nn>cdt</c-><c- p>:</c-><c- f>List</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>from</c-> <c- s>"2026-01-01T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
   <c- nn>tss</c-><c- p>:</c-><c- f>until</c-> <c- s>"2026-01-02T00:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-><c- p>;</c->
@@ -2265,28 +2265,28 @@ A first example illustrates the features of a <code>tss:Snippet</code>:</p>
 Example 1 for example can be expanded to this RDF dataset:</p>
    <div class="example" id="simple_example_rdf">
     <a class="self-link" href="#simple_example_rdf"></a> 
-<pre class="language-turtle highlight"><c- g>&lt;0></c->
+<pre class="language-turtle highlight"><c- g>&lt;https://example.org/0></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.4"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
-<c- g>&lt;1></c->
+<c- g>&lt;https://example.org/1></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
-<c- g>&lt;2></c->
+<c- g>&lt;https://example.org/2></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"5.2"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>observedProperty</c-> <c- g>&lt;temperature></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>resultTime</c-> <c- s>"2026-01-01T08:00:02Z"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>dateTime</c-> <c- p>.</c->
 
-<c- g>&lt;3></c->
+<c- g>&lt;https://example.org/3></c->
   <c- b>a</c-> <c- nn>sosa</c-><c- p>:</c-><c- f>Observation</c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>madeBySensor</c-> <c- g>&lt;temp_sensor_1></c-> <c- p>;</c->
   <c- nn>sosa</c-><c- p>:</c-><c- f>hasSimpleResult</c-> <c- s>"6.1"</c-><c- p>^^</c-><c- nn>xsd</c-><c- p>:</c-><c- f>double</c-> <c- p>;</c->
@@ -2335,10 +2335,10 @@ of 2 required properties and 1 optional property:</p>
    <div class="example" id="ex_points">
     <a class="self-link" href="#ex_points"></a> 
 <pre class="language-turtle highlight"><c- p>[</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.4"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"0"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"1"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T08:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"2"</c-> <c- p>},</c->
-    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"6.1"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"3"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.4"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"https://example.org/0"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T06:59:59Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"https://example.org/1"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T08:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"5.2"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"https://example.org/2"</c-> <c- p>},</c->
+    <c- p>{</c-> <c- s>"time"</c-><c- p>:</c-> <c- s>"2026-01-01T09:00:00Z"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#dateTime><c- p>,</c-> <c- s>"value"</c-><c- p>:</c-> <c- s>"6.1"</c-><c- o>^^</c->&lt;http://www.w3.org/2001/XMLSchema#double><c- p>,</c-> <c- s>"id"</c-><c- p>:</c-> <c- s>"https://example.org/3"</c-> <c- p>},</c->
 <c- p>]</c->
 </pre>
    </div>
