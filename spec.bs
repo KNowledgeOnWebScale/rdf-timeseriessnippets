@@ -6,7 +6,7 @@ Level: none
 Status: LD
 Repository: KNowledgeOnWebScale/rdf-ts-snippets-spec
 URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
-Editor: Dylan Van Assche
+Editor: Dylan Van Assche, https://dylanvanassche.be/#me
 Editor: Pieter Colpaert, https://pietercolpaert.be
 Abstract: An RDF Time Series Snippet is a segment of data points from a time series dataset, typically used for analysis or visualization. The specification uses [SPARQL Common Data Types](https://awslabs.github.io/SPARQL-CDTs/spec/latest.html) coined by AWS Lab to encode the data points in a values literal. The entity can then be used for annotating this snippet, which is a time interval subset of a potentially larger time series.
 Markup Shorthands: markdown yes, css no
