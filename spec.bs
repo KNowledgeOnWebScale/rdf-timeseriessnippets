@@ -4,7 +4,7 @@ Warning: Not Ready
 Shortname: RDF-TS-Snippets
 Level: none
 Status: LD
-Repository: KNowledgeOnWebScale/rdf-ts-snippets-spec
+Repository: KNowledgeOnWebScale/rdf-timeseriessnippets
 URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
 Editor: Dylan Van Assche, https://dylanvanassche.be/#me
 Editor: Pieter Colpaert, https://pietercolpaert.be
@@ -97,30 +97,23 @@ A <dfn>Data Point</dfn> is a single point of a [=Time Series=] containing an ISO
 
 Each [=Snippet=] SHOULD have the following properties:
 
-- `tss:points`: a `cdt:List` of data points where each data point is a `cdt:Map`.
-- `tss:from`: starting timestamp (including) of the period covered by `tss:points`.
-- `tss:until`: until this timestamp (excluding) of the period covered by `tss:points`.
-- `tss:about`: an entity description which provides the data points in `tss:points`.
-- `tss:pointType`: the RDF type of the data points in `tss:points`.
-- `tss:timePath`: the term to use for expanding the `time` property in `tss:points`.
-- `tss:valuePath`: the term to use for expanding the `value` property in `tss:points`.
+- `tss:points`: a `cdt:List` of data points where each data point is a `cdt:Map` with a `time` key using `xsd:dateTime` value, with a `value` key for which the value is annotated with a datatype, and optionally an `id` key for which the value is an IRI for the current data point.
+- `tss:from`: starting timestamp (including) of the period covered by `tss:points` using an `xsd:dateTime`.
+- `tss:until`: until this timestamp (excluding) of the period covered by `tss:points` using an `xsd:dateTime`.
+- `tss:about`: contains statements about a blank node. The statements can be asserted on top of all data points in `tss:points` when expanding the Snippet.
+- `tss:pointType`: the RDF type of all data points in `tss:points`.
+- `tss:timePath`: the path to use for expanding the `time` property in `tss:points`.
+- `tss:valuePath`: the path to use for expanding the `value` property in `tss:points`. 
 
 Issue: Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include valuePath, pointType and timePath. However, we can still analyze and visualize the data without that information.
-
-## Paths ## {#paths}
-
-A [=Snippet=] has multiple path descriptions to define the mapping between CDT and RDF.
-A path defines which RDF term must be used for each [=Data Point=] properties.
 
 ## Data Points ## {#points}
 
 `tss:points` MUST have a `cdt:List` as datatype. Each [=Data Point=] itself MUST be a `cdt:Map` consisting
 of 2 required properties and 1 optional property:
-  - `time`: the timestamp of the data point.
+  - `time`: the timestamp of the data point using an `xsd:dateTime`.
   - `value`: the value of the data point with corresponding datatype.
-  - `id`: the data point identifier, optionally (must be a named node).
-
-All properties of datapoints are expandable to RDF, the RDF terms to use are defined through the path descriptions of a Snippet.
+  - `id`: the data point identifier is optionally. When set, this MUST be a named node.
 
 <div class="example" id="ex_points">
 ```turtle
@@ -132,3 +125,17 @@ All properties of datapoints are expandable to RDF, the RDF terms to use are def
 ]
 ```
 </div>
+
+## Expanding data points ## {#expanding}
+
+When `tss:timePath` and `tss:valuePath` are set (mind this is not required), a [=Snippet=] can be expanded to a verbose RDF representation, for example using its original vocabulary.
+The properties `tss:about` and `tss:pointType` will influence that process.
+
+For each [=Data Point=], it can be mapped as follows:
+ 1. When the `id` is set and it is a valid IRI, set this id as the subject. If it is not, create a new blank node and set this as the subject.
+ 2. When `tss:pointType` is set, create a triple stating this id is of `rdf:type` the object of the pointType triple.
+ 3. Create a triple for the time based on the `tss:timePath`. For unknown intermediary named nodes, a blank node is to be created.
+ 4. Similarly, create a triple for the value based on the `tss:valuePath`.
+ 5. Now apply the `tss:about` blank node entity to this point.
+
+Issue: Discuss whether a SHACL Path makes sense to use as the intermediary steps will be mapped to blank nodes. Probably we could simplify here and make this a `tss:timeProperty` instead?
