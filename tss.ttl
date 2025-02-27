@@ -29,7 +29,7 @@ tss:about a owl:ObjectProperty;
     rdfs:label "about";
     rdfs:comment "Describes the Snippet."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
     rdfs:range tss:About;
 .
 
@@ -38,7 +38,7 @@ tss:from a owl:DatatypeProperty;
     rdfs:label "from";
     rdfs:comment "Timestamp to indicate the beginning of the Snippet's period (including)."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
     rdfs:range xsd:dateTime;
 .
 
@@ -47,7 +47,7 @@ tss:until a owl:DatatypeProperty;
     rdfs:label "until";
     rdfs:comment "Timestamp to indicate the end of the Snippet's period (excluding)."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
     rdfs:range xsd:dateTime;
 .
 
@@ -56,7 +56,7 @@ tss:pointType a owl:ObjectProperty;
     rdfs:label "pointType";
     rdfs:comment "RDF type of each data point."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
 .
 
 ###  https://w3id.org/tss/points
@@ -64,7 +64,7 @@ tss:points a owl:DatatypeProperty;
     rdfs:label "points";
     rdfs:comment "Data points of the Snippet."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
     rdfs:range cdt:Map;
 .
 
@@ -73,7 +73,7 @@ tss:timePath a owl:ObjectProperty;
     rdfs:label "timePath";
     rdfs:comment "SHACL property path to the timestamp of the data point entity."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
 .
 
 ###  https://w3id.org/tss/valuePath
@@ -81,7 +81,7 @@ tss:valuePath a owl:ObjectProperty;
     rdfs:label "valuePath";
     rdfs:comment "SHACL property path to the value of the data point entity."@en;
     rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
 .
 
 #################################################################
@@ -92,5 +92,5 @@ tss:valuePath a owl:ObjectProperty;
 tss:Snippet rdf:type owl:Class ;
     rdfs:label "Snippet";
     rdfs:comment "RDF Time Series Snippet"@en;
-    rdfs:isDefinedBy <http://w3id.org/tss/>;
+    rdfs:isDefinedBy <>;
 .
