@@ -52,7 +52,7 @@ A first example illustrates the features of a `tss:Snippet`:
 	   }
        }
   """^^rdf:JSON;
-  tss:about [
+  tss:about [ a tss:PointTemplate;
     sosa:madeBySensor <temp_sensor_1>;
     sosa:observedProperty <temperature>;
   ];
@@ -110,7 +110,7 @@ Each [=Snippet=] SHOULD have the following properties:
 - `tss:points`: a JSON array (datatype `rdf:JSON`) of data points where each data point is a JSON object with a `time` key using `xsd:dateTime` value, with a `value` key for which the value is annotated with a datatype, and optionally an `id` key for which the value is an IRI for the current data point.
 - `tss:from`: starting timestamp (including) of the period covered by `tss:points` using an `xsd:dateTime`.
 - `tss:until`: until this timestamp (excluding) of the period covered by `tss:points` using an `xsd:dateTime`.
-- `tss:about`: contains statements about a blank node. The statements can be asserted on top of all data points in `tss:points` when expanding the Snippet.
+- `tss:about`: contains statements the data points, defined as a `tss:PointTemplate`. The statements can be asserted on top of all data points in `tss:points` when expanding the Snippet.
 - `tss:pointType`: the RDF type of all data points in `tss:points`.
 - `tss:context`: JSON-LD context describing the JSON array of `tss:points`.
 
