@@ -94,3 +94,10 @@ tss:Snippet rdf:type owl:Class ;
     rdfs:comment "RDF Time Series Snippet"@en;
     rdfs:isDefinedBy <>;
 .
+
+###  https://w3id.org/tss/PointTemplate
+tss:PointTemplate rdf:type owl:Class ;
+    rdfs:label "PointTemplate";
+    rdfs:comment "RDF Time Series Point Template"@en;
+    rdfs:isDefinedBy <>;
+.
