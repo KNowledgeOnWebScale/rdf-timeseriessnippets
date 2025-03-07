@@ -8,7 +8,7 @@ Repository: KNowledgeOnWebScale/rdf-timeseriessnippets
 URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
 Editor: Dylan Van Assche, https://dylanvanassche.be/#me
 Editor: Pieter Colpaert, https://pietercolpaert.be
-Abstract: An RDF Time Series Snippet is a segment of data points from a time series dataset, typically used for analysis or visualization. The specification uses [SPARQL Common Data Types](https://awslabs.github.io/SPARQL-CDTs/spec/latest.html) coined by AWS Lab to encode the data points in a values literal. The entity can then be used for annotating this snippet, which is a time interval subset of a potentially larger time series.
+Abstract: An RDF Time Series Snippet is a segment of data points from a time series dataset, typically used for analysis or visualization. The specification uses JSON to store the data points to allow re-usability of existing tooling for analyzing time series. The entity can then be used for annotating this snippet, which is a time interval subset of a potentially larger time series.
 Markup Shorthands: markdown yes, css no
 </pre>
 
@@ -16,7 +16,7 @@ Markup Shorthands: markdown yes, css no
 
 Sensor observations, positioning data, measurements, mobility information... are commonly published as Time Series data with a timestamp and a value. 
 Representing Time Series data in RDF drastically raises the verbosity, as each data point is often given its own identifier, for which contextual information is repeated on all data points.
-With Time Series Snippets, we allow a data publisher to compact the data points in subsets of a Time Series, called the Snippet, by using [SPARQL Common Data Types](https://awslabs.github.io/SPARQL-CDTs/spec/latest.html) such as `cdt:List` and `cdt:Map`.
+With Time Series Snippets, we allow a data publisher to compact the data points in subsets of a Time Series, called the Snippet with JSON objects, allowing to re-use existing tooling for analyzing time series.
 This way, you can greatly reduce the amount of triples when describing a Time Series.
 
 Time Series Snippets use the following prefix and namespace:
@@ -32,16 +32,27 @@ A first example illustrates the features of a `tss:Snippet`:
 <snippet/2026-01-01>
   a tss:Snippet;
   tss:points """[
-    { "time": "2026-01-01T06:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.4"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/0"},
-    { "time": "2026-01-01T06:59:59Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/1"},
-    { "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/2"},
-    { "time": "2026-01-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/3"},
-  ]"""^^cdt:List;
+    { "time": "2026-01-01T06:00:00Z", "value": "5.4", "id": "https://example.org/0"},
+    { "time": "2026-01-01T06:59:59Z", "value": "5.2", "id": "https://example.org/1"},
+    { "time": "2026-01-01T08:00:00Z", "value": "5.2", "id": "https://example.org/2"},
+    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3"},
+  ]"""^^rdf:JSON;
   tss:from "2026-01-01T00:00:00Z"^^xsd:dateTime;
   tss:until "2026-01-02T00:00:00Z"^^xsd:dateTime;
   tss:pointType sosa:Observation;
-  tss:timePath sosa:resultTime;
-  tss:valuePath sosa:hasSimpleResult;
+  tss:context """{
+    "@context":{
+       "time": {
+         "@id":"http://www.w3.org/ns/sosa/resultTime",
+         "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
+     },
+     "value": {
+         "@id":"http://www.w3.org/ns/sosa/simpleValue",
+         "@type":"http://www.w3.org/2001/XMLSchema#integer"
+      },
+     "id": "@id"
+    }
+  }"""^^rdf:JSON;
   tss:about [
     sosa:madeBySensor <temp_sensor_1>;
     sosa:observedProperty <temperature>;
@@ -97,45 +108,55 @@ A <dfn>Data Point</dfn> is a single point of a [=Time Series=] containing an ISO
 
 Each [=Snippet=] SHOULD have the following properties:
 
-- `tss:points`: a `cdt:List` of data points where each data point is a `cdt:Map` with a `time` key using `xsd:dateTime` value, with a `value` key for which the value is annotated with a datatype, and optionally an `id` key for which the value is an IRI for the current data point.
+- `tss:points`: a JSON array (datatype `rdf:JSON`) of data points where each data point is a JSON object with a `time` key using `xsd:dateTime` value, with a `value` key for which the value is annotated with a datatype, and optionally an `id` key for which the value is an IRI for the current data point.
 - `tss:from`: starting timestamp (including) of the period covered by `tss:points` using an `xsd:dateTime`.
 - `tss:until`: until this timestamp (excluding) of the period covered by `tss:points` using an `xsd:dateTime`.
 - `tss:about`: contains statements about a blank node. The statements can be asserted on top of all data points in `tss:points` when expanding the Snippet.
 - `tss:pointType`: the RDF type of all data points in `tss:points`.
-- `tss:timePath`: the path to use for expanding the `time` property in `tss:points`.
-- `tss:valuePath`: the path to use for expanding the `value` property in `tss:points`. 
+- `tss:context`: JSON-LD context describing the JSON array of `tss:points`.
 
-Issue: Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include valuePath, pointType and timePath. However, we can still analyze and visualize the data without that information.
+Issue: Discuss whether these properties are required or optional. E.g., a publisher might decide to do a lossy conversion for their goal, and not include a JSON-LD context or pointType. However, we can still analyze and visualize the data without that information.
 
 ## Data Points ## {#points}
 
-`tss:points` MUST have a `cdt:List` as datatype. Each [=Data Point=] itself MUST be a `cdt:Map` consisting
-of 2 required properties and 1 optional property:
+`tss:points` MUST be a JSON array with JSON objects (`rdf:JSON` as datatype).
+Each [=Data Point=] itself MUST be a JSON object consisting of 2 required properties and 1 optional property:
   - `time`: the timestamp of the data point using an `xsd:dateTime`.
   - `value`: the value of the data point with corresponding datatype.
   - `id`: the data point identifier is optionally. When set, this MUST be a named node.
 
 <div class="example" id="ex_points">
 ```turtle
-[
-    { "time": "2026-01-01T06:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.4"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/0" },
-    { "time": "2026-01-01T06:59:59Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/1" },
-    { "time": "2026-01-01T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "5.2"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/2" },
-    { "time": "2026-01-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime>, "value": "6.1"^^<http://www.w3.org/2001/XMLSchema#double>, "id": "https://example.org/3" },
-]
+"""[
+    { "time": "2026-01-01T06:00:00Z", "value": "5.4", "id": "https://example.org/0" },
+    { "time": "2026-01-01T06:59:59Z", "value": "5.2", "id": "https://example.org/1" },
+    { "time": "2026-01-01T08:00:00Z", "value": "5.2", "id": "https://example.org/2" },
+    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3" },
+]"""^^rdf:JSON;
 ```
 </div>
 
 ## Expanding data points ## {#expanding}
 
-When `tss:timePath` and `tss:valuePath` are set (mind this is not required), a [=Snippet=] can be expanded to a verbose RDF representation, for example using its original vocabulary.
+When the optional JSON-LD context is provided through `tss:context`, a [=Snippet=] can be expanded to a verbose RDF representation, for example using its original vocabulary as defined in the JSON-LD specification to transform JSON-LD into RDF quads. The following default JSON-LD context is used if no context is specified:
+
+```json
+{
+ "@context": {
+    "id": "@id",
+   "time": {
+       "@id": "https://w3id.org/tss#time",
+       "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "value": "https://w3id.org/tss#value" 
+ } 
+}
+```
 The properties `tss:about` and `tss:pointType` will influence that process.
 
 For each [=Data Point=], it can be mapped as follows:
  1. When the `id` is set and it is a valid IRI, set this id as the subject. If it is not, create a new blank node and set this as the subject.
  2. When `tss:pointType` is set, create a triple stating this id is of `rdf:type` the object of the pointType triple.
- 3. Create a triple for the time based on the `tss:timePath`. For unknown intermediary named nodes, a blank node is to be created.
- 4. Similarly, create a triple for the value based on the `tss:valuePath`.
+ 3. Create a triple for the time based on the JSON-LD context. For unknown intermediary named nodes, a blank node is to be created.
+ 4. Similarly, create a triple for the value based on the JSON-LD context.
  5. Now apply the `tss:about` blank node entity to this point.
-
-Issue: Discuss whether a SHACL Path makes sense to use as the intermediary steps will be mapped to blank nodes. Probably we could simplify here and make this a `tss:timeProperty` instead?
