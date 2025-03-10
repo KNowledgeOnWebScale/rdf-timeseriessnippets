@@ -41,16 +41,17 @@ A first example illustrates the features of a `tss:Snippet`:
   tss:until "2026-01-02T00:00:00Z"^^xsd:dateTime;
   tss:pointType sosa:Observation;
   tss:context """
-      "@context":{
-	   "time": {
-	        "@id":"sosa:resultTime",
-	        "@type":"xsd:dateTime"
-	   },
-	   "value": {
-	        "@id":"sosa:resultTime",
-	        "@type":"xsd:integer"
-	   }
-       }
+    "@context":{
+        "id": "@id", 
+        "time": {
+            "@id":"http://www.w3.org/ns/sosa/resultTime",
+	    "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
+        },
+        "value": {
+            "@id": "http://www.w3.org/ns/sosa/resultTime",
+            "@type":"http://www.w3.org/2001/XMLSchema#integer"
+        }
+    }
   """^^rdf:JSON;
   tss:about [ a tss:PointTemplate;
     sosa:madeBySensor <temp_sensor_1>;
@@ -141,14 +142,14 @@ When the optional JSON-LD context is provided through `tss:context`, a [=Snippet
 
 ```json
 {
- "@context": {
+  "@context": {
     "id": "@id",
-   "time": {
-       "@id": "https://w3id.org/tss#time",
-       "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
+    "time": {
+      "@id": "https://w3id.org/tss#time",
+      "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
     },
     "value": "https://w3id.org/tss#value" 
- } 
+  }
 }
 ```
 
