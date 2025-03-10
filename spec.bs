@@ -8,7 +8,7 @@ Repository: KNowledgeOnWebScale/rdf-timeseriessnippets
 URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
 Editor: Dylan Van Assche, https://dylanvanassche.be/#me
 Editor: Pieter Colpaert, https://pietercolpaert.be
-Abstract: An RDF Time Series Snippet is a segment of data points from a time series dataset, typically used for analysis or visualization. The specification uses JSON to store the data points to allow re-usability of existing tooling for analyzing time series. The entity can then be used for annotating this snippet, which is a time interval subset of a potentially larger time series.
+Abstract: An RDF Time Series Snippet is a segment of data points from a time series dataset, typically used for analysis or visualization. The specification uses JSON data types for the data points. This allows re-usability of existing tooling for analyzing or visualizing these time series snippet literals, for whih the RDF provides useful context information.
 Markup Shorthands: markdown yes, css no
 </pre>
 
@@ -35,7 +35,7 @@ A first example illustrates the features of a `tss:Snippet`:
     { "time": "2026-01-01T06:00:00Z", "value": "5.4", "id": "https://example.org/0"},
     { "time": "2026-01-01T06:59:59Z", "value": "5.2", "id": "https://example.org/1"},
     { "time": "2026-01-01T08:00:00Z", "value": "5.2", "id": "https://example.org/2"},
-    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3"},
+    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3"}
   ]"""^^rdf:JSON;
   tss:from "2026-01-01T00:00:00Z"^^xsd:dateTime;
   tss:until "2026-01-02T00:00:00Z"^^xsd:dateTime;
@@ -130,19 +130,32 @@ Each [=Data Point=] itself MUST be a JSON object consisting of 2 required proper
     { "time": "2026-01-01T06:00:00Z", "value": "5.4", "id": "https://example.org/0" },
     { "time": "2026-01-01T06:59:59Z", "value": "5.2", "id": "https://example.org/1" },
     { "time": "2026-01-01T08:00:00Z", "value": "5.2", "id": "https://example.org/2" },
-    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3" },
+    { "time": "2026-01-01T09:00:00Z", "value": "6.1", "id": "https://example.org/3" }
 ]"""^^rdf:JSON;
 ```
 </div>
 
 ## Expanding data points ## {#expanding}
 
-When the optional JSON-LD context is provided through `tss:context`, a [=Snippet=] can be expanded to a verbose RDF representation, for example using its original vocabulary.
+When the optional JSON-LD context is provided through `tss:context`, a [=Snippet=] can be expanded to a verbose RDF representation, for example using its original vocabulary as defined in the JSON-LD specification to transform JSON-LD into RDF quads. The following default JSON-LD context is used if no context is specified:
+
+```json
+{
+ "@context": {
+    "id": "@id",
+   "time": {
+       "@id": "https://w3id.org/tss#time",
+       "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    "value": "https://w3id.org/tss#value" 
+ } 
+}
+```
+
 The properties `tss:about` and `tss:pointType` will influence that process.
 
 For each [=Data Point=], it can be mapped as follows:
- 1. When the `id` is set and it is a valid IRI, set this id as the subject. If it is not, create a new blank node and set this as the subject.
- 2. When `tss:pointType` is set, create a triple stating this id is of `rdf:type` the object of the pointType triple.
- 3. Create a triple for the time based on the JSON-LD context. For unknown intermediary named nodes, a blank node is to be created.
- 4. Similarly, create a triple for the value based on the JSON-LD context.
- 5. Now apply the `tss:about` blank node entity to this point.
+ 1. Use the JSON-LD process to convert the given JSON to RDF using the JSON-LD context.
+ 2. For each entity (which may be a blank node or an IRI), 
+     - When `tss:pointType` is set, create a triple stating this id is of `rdf:type` the object of the pointType triple.
+     - When `tss:about` is set, apply the subject-based star pattern of the template, except for the type, to this entity.
