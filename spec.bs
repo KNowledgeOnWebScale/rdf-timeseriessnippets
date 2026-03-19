@@ -48,8 +48,8 @@ A first example illustrates the features of a `tss:Snippet`:
 	    "@type":"http://www.w3.org/2001/XMLSchema#dateTime"
         },
         "value": {
-            "@id": "http://www.w3.org/ns/sosa/resultTime",
-            "@type":"http://www.w3.org/2001/XMLSchema#integer"
+            "@id": "http://www.w3.org/ns/sosa/hasSimpleResult",
+            "@type":"http://www.w3.org/2001/XMLSchema#double"
         }
     }
   """^^rdf:JSON;
