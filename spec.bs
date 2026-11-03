@@ -6,7 +6,6 @@ Level: none
 Status: LD
 Repository: KNowledgeOnWebScale/rdf-timeseriessnippets
 URL: https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/
-Editor: Dylan Van Assche, https://dylanvanassche.be/#me
 Editor: Pieter Colpaert, https://pietercolpaert.be
 Editor: Shehab Abdelfatah, https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/
 Abstract: RDF Time Series Snippets describes a source of time series data with RDF. The readings stay compact: inside the metadata as one JSON literal, or in an external source. RDF describes the source (where its readings are, which period they cover, whether they still change) and each of its fields (the column name and datatype of its values, and what they observe, in which unit, with which sensor). The readings can be summarised and expanded into observations.
