@@ -5,99 +5,415 @@
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix cdt: <http://w3id.org/awslabs/neptune/SPARQL-CDTs/> .
-@base <https://w3id.org/tss#> .                                                 
-                                                                  
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix csvw: <http://www.w3.org/ns/csvw#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@base <https://w3id.org/tss#> .
+
 <https://w3id.org/tss#> rdf:type owl:Ontology ;
-                          owl:versionIRI <https://w3id.org/tss/0.1.0#> ;
-                          owl:versionInfo "0.1.0" ;
-                          dcterms:modified "2025-02-25" ;
-                          dcterms:description "Ontology for defining Time Series Snippets in RDF."@en ;
-                          dcterms:title "RDF Time Series Snippets"@en ;
-                          dcterms:contributor <https://dylannvanassche.be/#me>, <https://pietercolpaert.be/#me> ;
-                          vann:preferredNamespacePrefix "tss" ;
-                          vann:preferredNamespaceUri "https://w3id.org/tss#" ;
-.
-
-#################################################################
-#    Annotation properties
-#################################################################
-
-###  https://w3id.org/tss/about
-tss:about a owl:ObjectProperty;
-    rdfs:label "about";
-    rdfs:comment "Describes the Snippet."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-    rdfs:range tss:About;
-.
-
-###  https://w3id.org/tss/from
-tss:from a owl:DatatypeProperty;
-    rdfs:label "from";
-    rdfs:comment "Timestamp to indicate the beginning of the Snippet's period (including)."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-    rdfs:range xsd:dateTime;
-.
-
-###  https://w3id.org/tss/until
-tss:until a owl:DatatypeProperty;
-    rdfs:label "until";
-    rdfs:comment "Timestamp to indicate the end of the Snippet's period (excluding)."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-    rdfs:range xsd:dateTime;
-.
-
-###  https://w3id.org/tss/pointType
-tss:pointType a owl:ObjectProperty;
-    rdfs:label "pointType";
-    rdfs:comment "RDF type of each data point."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-.
-
-###  https://w3id.org/tss/points
-tss:points a owl:DatatypeProperty;
-    rdfs:label "points";
-    rdfs:comment "Data points of the Snippet."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-    rdfs:range cdt:Map;
-.
-
-###  https://w3id.org/tss/timePath
-tss:timePath a owl:ObjectProperty;
-    rdfs:label "timePath";
-    rdfs:comment "SHACL property path to the timestamp of the data point entity."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
-.
-
-###  https://w3id.org/tss/valuePath
-tss:valuePath a owl:ObjectProperty;
-    rdfs:label "valuePath";
-    rdfs:comment "SHACL property path to the value of the data point entity."@en;
-    rdfs:domain tss:Snippet;
-    rdfs:isDefinedBy <>;
+    owl:versionIRI <https://w3id.org/tss/0.2.0#> ;
+    owl:versionInfo "0.2.0" ;
+    dcterms:modified "2026-11-03" ;
+    dcterms:description "Ontology for describing sources of time series data with RDF: a table of readings, embedded in the metadata or kept in an external data file, and the fields of that table."@en ;
+    dcterms:title "RDF Time Series Snippets"@en ;
+    rdfs:comment "This ontology lists the terms of the RDF Time Series Snippets specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
+    rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/> ;
+    dcterms:contributor <https://pietercolpaert.be/#me> ;
+    vann:preferredNamespacePrefix "tss" ;
+    vann:preferredNamespaceUri "https://w3id.org/tss#" ;
 .
 
 #################################################################
 #    Classes
 #################################################################
 
-###  https://w3id.org/tss/Snippet
-tss:Snippet rdf:type owl:Class ;
-    rdfs:label "Snippet";
-    rdfs:comment "RDF Time Series Snippet"@en;
-    rdfs:isDefinedBy <>;
+###  https://w3id.org/tss#Source
+tss:Source rdf:type owl:Class ;
+    rdfs:label "Source"@en ;
+    rdfs:comment "A table of readings that share one time field: each row is a point, each column a field. Its readings are embedded in the metadata (tss:points) or kept in an external data file (tss:dataFile)."@en ;
+    rdfs:subClassOf dcat:Dataset ;
+    rdfs:isDefinedBy <> ;
 .
 
-###  https://w3id.org/tss/PointTemplate
-tss:PointTemplate rdf:type owl:Class ;
-    rdfs:label "PointTemplate";
-    rdfs:comment "RDF Time Series Point Template"@en;
-    rdfs:isDefinedBy <>;
+###  https://w3id.org/tss#Field
+tss:Field rdf:type owl:Class ;
+    rdfs:label "Field"@en ;
+    rdfs:comment "One column of a source: the name and datatype of its values and, optionally, what they mean."@en ;
+    rdfs:subClassOf csvw:Column ;
+    rdfs:isDefinedBy <> ;
+.
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  https://w3id.org/tss#CSV
+tss:CSV rdf:type owl:NamedIndividual ;
+    rdfs:label "CSV"@en ;
+    rdfs:comment "Value of tss:format: the data file is a CSV file."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#Parquet
+tss:Parquet rdf:type owl:NamedIndividual ;
+    rdfs:label "Parquet"@en ;
+    rdfs:comment "Value of tss:format: the data file is an Apache Parquet file."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#ExcludeEmptyValues
+tss:ExcludeEmptyValues rdf:type owl:NamedIndividual ;
+    rdfs:label "ExcludeEmptyValues"@en ;
+    rdfs:comment "Value of tss:missingValuePolicy: an empty value is not a value, so the numbers of the summary leave it out."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+#################################################################
+#    Properties of a source
+#################################################################
+
+###  https://w3id.org/tss#embedded
+tss:embedded a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "embedded"@en ;
+    rdfs:comment "True when the points are in the metadata (tss:points), false when they are in a data file (tss:dataFile)."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#mutable
+tss:mutable a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "mutable"@en ;
+    rdfs:comment "False when the data never changes. True when the source is append-only: points may be added, but none is changed or removed."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#modifiedAt
+tss:modifiedAt a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "modifiedAt"@en ;
+    rdfs:comment "When the metadata of the source was last edited: any statement of the document, including the points of an embedded source."@en ;
+    rdfs:subPropertyOf dcterms:modified ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#committedUntil
+tss:committedUntil a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "committedUntil"@en ;
+    rdfs:comment "The last time the source and its data were checked to be up to date. It is not the time of a reading and no bound of the time window."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#hasField
+tss:hasField a owl:ObjectProperty ;
+    rdfs:label "hasField"@en ;
+    rdfs:comment "A field (column) of the source."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#timeField
+tss:timeField a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "timeField"@en ;
+    rdfs:comment "The field that holds the time of each point. It is one of the fields of the source."@en ;
+    rdfs:subPropertyOf tss:hasField ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#key
+tss:key a owl:ObjectProperty ;
+    rdfs:label "key"@en ;
+    rdfs:comment "A field whose values, together with those of the other key fields, identify a point. When a source states no key, its key is its time field."@en ;
+    rdfs:subPropertyOf tss:hasField ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#from
+tss:from a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "from"@en ;
+    rdfs:comment "Start of the time window of the source (included). When absent, the window is open on that side."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#until
+tss:until a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "until"@en ;
+    rdfs:comment "End of the time window of the source (not included). It is after tss:from. When absent, the window is open on that side."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#points
+tss:points a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "points"@en ;
+    rdfs:comment "The points of an embedded source: a JSON array of JSON objects, one object per point, whose keys are the column names of the fields."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range rdf:JSON ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#dataFile
+tss:dataFile a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "dataFile"@en ;
+    rdfs:comment "The data file of an external source. A relative IRI is resolved against the IRI of the metadata document."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#format
+tss:format a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "format"@en ;
+    rdfs:comment "How to read the data file: tss:CSV or tss:Parquet."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#delimiter
+tss:delimiter a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "delimiter"@en ;
+    rdfs:comment "The one character that separates the cells of a CSV data file. Default: \",\"."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:string ;
+    skos:closeMatch csvw:delimiter ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#encoding
+tss:encoding a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "encoding"@en ;
+    rdfs:comment "The text encoding of a CSV data file. Default: \"utf-8\"."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:string ;
+    skos:closeMatch csvw:encoding ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#header
+tss:header a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "header"@en ;
+    rdfs:comment "Whether the first line of a CSV data file names the columns. Default: true."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:boolean ;
+    skos:closeMatch csvw:header ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#producedBy
+tss:producedBy a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "producedBy"@en ;
+    rdfs:comment "The agent that produced the data."@en ;
+    rdfs:subPropertyOf prov:wasAttributedTo ;
+    rdfs:domain tss:Source ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#sourceDescription
+tss:sourceDescription a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "sourceDescription"@en ;
+    rdfs:comment "A node that describes the source in any vocabulary."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:isDefinedBy <> ;
+.
+
+#################################################################
+#    Properties of a field
+#################################################################
+
+###  https://w3id.org/tss#columnName
+tss:columnName a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "columnName"@en ;
+    rdfs:comment "The name of the column: the CSV header, the Parquet column, the key in the embedded points. Unique within the source."@en ;
+    rdfs:subPropertyOf csvw:name ;
+    rdfs:domain tss:Field ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#columnIndex
+tss:columnIndex a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "columnIndex"@en ;
+    rdfs:comment "The position of the column, the first being 0. Unique within the source."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#datatype
+tss:datatype a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "datatype"@en ;
+    rdfs:comment "The datatype of the values of the field, such as xsd:double."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:range rdfs:Datatype ;
+    skos:closeMatch csvw:datatype ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#language
+tss:language a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "language"@en ;
+    rdfs:comment "The language of the values of an rdf:langString field."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:range xsd:language ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#minimum
+tss:minimum a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "minimum"@en ;
+    rdfs:comment "The expected smallest value of a numeric field, included. Informative."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#maximum
+tss:maximum a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "maximum"@en ;
+    rdfs:comment "The expected largest value of a numeric field, included. Informative."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#observedProperty
+tss:observedProperty a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "observedProperty"@en ;
+    rdfs:comment "What the values of the field observe. Makes the field a measured field. Each value of the field is expanded into an observation with this observed property."@en ;
+    rdfs:domain tss:Field ;
+    skos:closeMatch sosa:observedProperty ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#unit
+tss:unit a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "unit"@en ;
+    rdfs:comment "The unit of the values of the field."@en ;
+    rdfs:domain tss:Field ;
+    skos:closeMatch qudt:hasUnit ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#sensor
+tss:sensor a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "sensor"@en ;
+    rdfs:comment "The sensor that made the values of the field."@en ;
+    rdfs:domain tss:Field ;
+    skos:closeMatch sosa:madeBySensor ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#featureOfInterest
+tss:featureOfInterest a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "featureOfInterest"@en ;
+    rdfs:comment "The thing the values of the field are about."@en ;
+    rdfs:domain tss:Field ;
+    skos:closeMatch sosa:hasFeatureOfInterest ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#describesField
+tss:describesField a owl:ObjectProperty ;
+    rdfs:label "describesField"@en ;
+    rdfs:comment "The field of the same source whose values this field says something about."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:range tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#summary
+tss:summary a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "summary"@en ;
+    rdfs:comment "A stored summary of the values of the field: a node that holds numbers computed from them, over the time window of the source."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#fieldDescription
+tss:fieldDescription a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "fieldDescription"@en ;
+    rdfs:comment "A node that describes the field in any vocabulary."@en ;
+    rdfs:domain tss:Field ;
+    rdfs:isDefinedBy <> ;
+.
+
+#################################################################
+#    Properties of a stored summary
+#################################################################
+
+###  https://w3id.org/tss#missingValuePolicy
+tss:missingValuePolicy a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "missingValuePolicy"@en ;
+    rdfs:comment "Which values the numbers of the summary leave out, such as tss:ExcludeEmptyValues."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#count
+tss:count a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "count"@en ;
+    rdfs:comment "How many points in the window have a value for the field."@en ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#missing
+tss:missing a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "missing"@en ;
+    rdfs:comment "How many points in the window have no value for the field. A time without a point is not counted."@en ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#firstTime
+tss:firstTime a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "firstTime"@en ;
+    rdfs:comment "The time of the first point that has a value."@en ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#lastTime
+tss:lastTime a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "lastTime"@en ;
+    rdfs:comment "The time of the last point that has a value."@en ;
+    rdfs:range xsd:dateTime ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#observedMinimum
+tss:observedMinimum a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "observedMinimum"@en ;
+    rdfs:comment "The smallest value of a numeric field in the window, also when it lies outside tss:minimum and tss:maximum."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#observedMaximum
+tss:observedMaximum a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "observedMaximum"@en ;
+    rdfs:comment "The largest value of a numeric field in the window, also when it lies outside tss:minimum and tss:maximum."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#mean
+tss:mean a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "mean"@en ;
+    rdfs:comment "The unweighted arithmetic mean of the values of a numeric field in the window."@en ;
+    rdfs:isDefinedBy <> ;
+.
+
+###  https://w3id.org/tss#median
+tss:median a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "median"@en ;
+    rdfs:comment "The middle value of a numeric field in the window, or the mean of the two middle values when their number is even."@en ;
+    rdfs:isDefinedBy <> ;
 .

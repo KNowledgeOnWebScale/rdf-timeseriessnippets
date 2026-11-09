@@ -43,6 +43,8 @@ This example is a complete [=Embedded Source=]: five conductivity readings of on
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix quantitykind: <http://qudt.org/vocab/quantitykind/> .
 @prefix unit: <http://qudt.org/vocab/unit/> .
 @prefix ex: <https://example.org/ex#> .
@@ -58,7 +60,6 @@ ex:source
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
     tss:timeField ex:time-field ;
-    tss:key ex:time-field ;
     tss:hasField ex:time-field,
         ex:value-field ;
     tss:points """[
@@ -89,10 +90,15 @@ ex:value-field
 ```
 </div>
 
-The keys of the points are the fields' `tss:columnName`. Expanded into observations ([[#expanding]]), every value of a [=Measured Field=] becomes one observation, with a link back to the source, the time of its point and what its field says. Written with SOSA [[VOCAB-SSN]] and `dcterms:source`, the first two observations are:
+The keys of the points are the fields' `tss:columnName`. The source states no `tss:key`, so its key is its time field ([[#time-and-key]]). The examples that follow reuse the prefixes of this example.
+
+Expanded into observations ([[#expanding]]), every value of a [=Measured Field=] becomes one observation, with a link back to the source, the time of its point and what its field says. Written with SOSA [[VOCAB-SSN]] and `dcterms:source` ([[#sosa-mapping]]), the first two observations are:
 
 <div class="example" id="example-observations">
 ```turtle
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+
 [] a sosa:Observation ;
     dcterms:source ex:source ;
     sosa:observedProperty quantitykind:ElectricConductivity ;
@@ -127,13 +133,13 @@ A <dfn>Point</dfn> is one row of a [=Source=]: one time, and at most one value f
 
 The <dfn>Time Field</dfn> of a source is the field that holds the time of each point (`tss:timeField`).
 
-The <dfn>Key</dfn> of a source is the field, or the fields, whose values identify a point (`tss:key`). Usually the key is the time field.
+The <dfn>Key</dfn> of a source is the field, or the fields, whose values identify a point (`tss:key`). When a source does not state a key, its key is the time field.
 
 The <dfn>Time Window</dfn> of a source is the period from `tss:from` (included) until `tss:until` (not included). A point lies in the window when its time is not before `tss:from` and before `tss:until`. A bound that is not stated leaves that side of the window open.
 
-An <dfn>Embedded Source</dfn> keeps its points in the metadata, in `tss:points` (`tss:embedded true`). An <dfn>External Source</dfn> keeps them in a data file, `tss:dataFile` (`tss:embedded false`).
+An <dfn>Empty Value</dfn> is the absence of a value: an empty CSV cell, a Parquet NULL, or, in an embedded point, a missing key, `null` or the empty string `""`. A text that holds only spaces is not empty. Consequently, a value that is the empty string cannot be represented: an empty text and no value are the same thing.
 
-An <dfn>Empty Value</dfn> is the absence of a value: an empty CSV cell, a Parquet NULL, or, in an embedded point, a missing key, `null` or the empty string `""`. A text that holds only spaces is not empty.
+An <dfn>Embedded Source</dfn> keeps its points in the metadata, in `tss:points` (`tss:embedded true`). An <dfn>External Source</dfn> keeps them in a data file, `tss:dataFile` (`tss:embedded false`).
 
 A <dfn>Measured Field</dfn> is a field with a `tss:observedProperty` that is not the time field. Each of its values is an observation.
 
@@ -141,11 +147,11 @@ A <dfn>Describing Field</dfn> says something about the values of another field (
 
 A <dfn>Stored Summary</dfn> holds numbers computed from the values of one field, such as their count and mean (`tss:summary`).
 
-A <dfn>Write</dfn> is a change to the points of a source, such as adding a point.
+A <dfn>Write</dfn> is a change to the points of a source. This specification defines one Write: adding a point ([[#updating]]).
 
 # The source # {#the-source}
 
-A metadata document MUST describe exactly one `tss:Source`. The source has one time field, which gives the time of every point for all its other fields. The table lists its properties. "Required" means exactly one value unless the table says otherwise, "optional" at most one, and "not allowed" none.
+A metadata document MUST describe at least one `tss:Source`. Each source in the document is described and read on its own: it has its own fields, points and data file, and a field belongs to exactly one source. A source has one time field, which gives the time of every point for all its other fields. The table lists the properties of a source. "Required" means exactly one value unless the table says otherwise, "optional" at most one, and "not allowed" none.
 
 <table class="data">
 <thead>
@@ -158,7 +164,7 @@ A metadata document MUST describe exactly one `tss:Source`. The source has one t
 <tr><td><code>tss:committedUntil</code></td><td><code>xsd:dateTime</code></td><td>required</td><td>required</td></tr>
 <tr><td><code>tss:hasField</code></td><td>a <code>tss:Field</code></td><td>required, one or more</td><td>required, one or more</td></tr>
 <tr><td><code>tss:timeField</code></td><td>one of its fields</td><td>required</td><td>required</td></tr>
-<tr><td><code>tss:key</code></td><td>one of its fields</td><td>required, one or more</td><td>required, one or more</td></tr>
+<tr><td><code>tss:key</code></td><td>one of its fields</td><td>optional, one or more; default: the time field</td><td>optional, one or more; default: the time field</td></tr>
 <tr><td><code>tss:from</code></td><td><code>xsd:dateTime</code></td><td>optional</td><td>optional</td></tr>
 <tr><td><code>tss:until</code></td><td><code>xsd:dateTime</code>, after <code>tss:from</code></td><td>optional</td><td>optional</td></tr>
 <tr><td><code>tss:points</code></td><td><code>rdf:JSON</code> literal</td><td>not used</td><td>required</td></tr>
@@ -180,15 +186,17 @@ A metadata document MUST describe exactly one `tss:Source`. The source has one t
 - `true`: in the metadata itself, in `tss:points` ([[#points]]). The source MUST NOT state `tss:dataFile`, `tss:format`, `tss:delimiter`, `tss:encoding` or `tss:header`: they describe a data file.
 - `false`: in the data file `tss:dataFile`, read as `tss:format` says ([[#data-files]]). An external source does not use `tss:points`.
 
-A consumer selects the rules by this one boolean. Metadata without exactly one boolean `tss:embedded` does not say where its readings are.
+A consumer selects the rules for a source by this one boolean. A source without exactly one boolean `tss:embedded` does not say where its readings are.
 
 ## Time ## {#time}
 
 ### The time field and the key ### {#time-and-key}
 
-`tss:timeField` names the [=Time Field=]. It MUST be one of the source's own fields (`tss:hasField`), and every point MUST have a value for it. Its `tss:datatype` SHOULD be `xsd:dateTime` or `xsd:dateTimeStamp`.
+`tss:timeField` names the [=Time Field=]. It MUST be one of the source's own fields (`tss:hasField`), and every point MUST have a value for it. Its `tss:datatype` SHOULD be `xsd:dateTime`; `xsd:dateTimeStamp` is also allowed, but is not as well supported by RDF tooling.
 
-`tss:key` names the field or fields whose values identify a point. A source MUST state at least one key field, and each key field MUST be one of the source's own fields. No two points may have the same values for all key fields. In all the examples, the key is the time field.
+The times of a source, in the time field and in `tss:from`, `tss:until`, `tss:modifiedAt` and `tss:committedUntil`, SHOULD have a timezone (`Z` or an offset such as `+02:00`): a time without a timezone cannot be compared reliably with other times. A time without a timezone is read as UTC.
+
+`tss:key` names the field or fields whose values identify a point. When a source does not state `tss:key`, its key is its time field. Each key field MUST be one of the source's own fields. No two points may have the same values for all key fields.
 
 ### The time window ### {#window}
 
@@ -198,7 +206,7 @@ Note: The window does not have to be tight: `tss:until` may lie after the newest
 
 ## Changes ## {#change}
 
-- `tss:mutable` says whether the data of the source may still change. `false` means it never changes: no point is added, changed or removed. `true` means points may be added ([[#updating]]).
+- `tss:mutable` says whether the data of the source may still change. `false` means it never changes: no point is added, changed or removed. `true` means the source is append-only: points may be added ([[#updating]]), but no point is changed or removed.
 - `tss:modifiedAt` is when the metadata of the source was last edited: any statement of the document, including the points of an embedded source.
 - `tss:committedUntil` is the last time the source and its data were checked to be up to date. Every [=Write=] MUST set it to the time of that write; a check that finds nothing new may move it forward too. It is not the time of a reading and no bound of the [=Time Window=]: it may lie after the newest point, and after `tss:until`.
 
@@ -237,7 +245,7 @@ Each [=Field=] is a `tss:Field`, linked from exactly one source with `tss:hasFie
 <tr><td><code>tss:datatype</code></td><td>IRI</td><td>required</td><td>the datatype of the values, such as <code>xsd:double</code></td></tr>
 <tr><td><code>tss:columnIndex</code></td><td><code>xsd:integer</code>, 0 or more</td><td>optional</td><td>the position of the column, the first being 0; unique within the source</td></tr>
 <tr><td><code>tss:language</code></td><td>language tag</td><td>optional</td><td>the language of the values of an <code>rdf:langString</code> field</td></tr>
-<tr><td><code>tss:minimum</code>, <code>tss:maximum</code></td><td>number</td><td>optional</td><td>the allowed range of the values, bounds included; the maximum is not below the minimum</td></tr>
+<tr><td><code>tss:minimum</code>, <code>tss:maximum</code></td><td>number</td><td>optional</td><td>the expected range of the values, bounds included; the maximum is not below the minimum. Informative: see [[#meaning]]</td></tr>
 <tr><td><code>tss:observedProperty</code></td><td>IRI</td><td>optional</td><td>what the values observe; makes the field a [=Measured Field=]</td></tr>
 <tr><td><code>tss:unit</code></td><td>IRI</td><td>optional</td><td>the unit of the values</td></tr>
 <tr><td><code>tss:sensor</code></td><td>IRI</td><td>optional</td><td>the sensor that made the values</td></tr>
@@ -251,11 +259,11 @@ Each [=Field=] is a `tss:Field`, linked from exactly one source with `tss:hasFie
 
 ## Values and datatypes ## {#datatypes}
 
-Every value is a text: a CSV cell, the text of a JSON string, or a Parquet value written in the lexical form of its type ([[#parquet]]). `tss:datatype` is the logical datatype that reads that text; the data file keeps its own types. A value MUST be in the lexical form of its datatype [[XMLSCHEMA11-2]]. Implementations check at least these forms:
+Every value is read as a text: a CSV cell, a JSON value of an embedded point ([[#points]]), or a Parquet value written in the lexical form of its type ([[#parquet]]). `tss:datatype` is the logical datatype that reads that text; the data file keeps its own types. A value MUST be in the lexical form of its datatype [[XMLSCHEMA11-2]]. Implementations check at least these forms:
 
 - `xsd:double`, `xsd:float` and `xsd:decimal`; `xsd:integer`, `xsd:long`, `xsd:int`, `xsd:short`, `xsd:byte`, `xsd:nonNegativeInteger`, `xsd:positiveInteger`, `xsd:nonPositiveInteger`, `xsd:negativeInteger` and the unsigned types;
 - `xsd:boolean` (`true`, `false`, `1`, `0`);
-- `xsd:dateTime`, `xsd:dateTimeStamp` and `xsd:date`, which must also be real days: 30 February is no date.
+- `xsd:dateTime`, `xsd:dateTimeStamp` and `xsd:date`, which must also be real days: 30 February is no date. A `xsd:dateTime` value SHOULD have a timezone ([[#time-and-key]]).
 
 Any other datatype, such as `xsd:string`, accepts any text. A value keeps its text exactly as it is written: `" 12 "` is not read as 12, so a check can report it. The numeric datatypes are `xsd:double`, `xsd:float`, `xsd:decimal` and the XSD integer types: only a numeric field has an observed minimum and maximum, a mean and a median in its [=Stored Summary=].
 
@@ -265,7 +273,59 @@ An `rdf:langString` field states the language of its values with `tss:language`.
 
 `tss:observedProperty`, `tss:unit`, `tss:sensor` and `tss:featureOfInterest` say what the values of a field mean. They are stated field by field, so the fields of one source can observe different properties, with different sensors, in different units. When the source is expanded ([[#expanding]]), they are what each observation of the field holds.
 
-`tss:minimum` and `tss:maximum` are the allowed range of a numeric field, not the range of the values that occur: those are in the stored summary (`tss:observedMinimum`, `tss:observedMaximum`).
+`tss:minimum` and `tss:maximum` are the expected range of a numeric field, not the range of the values that occur: those are in the stored summary (`tss:observedMinimum`, `tss:observedMaximum`). The range is informative: a value outside it does not make the source non-conforming, and the expansion keeps it. A consumer MAY use the range, for example to flag suspicious readings.
+
+<div class="example" id="example-multi-sensor">
+Several measured fields share one time field, each with its own property, unit and sensor. The value of the humidity at 08:10 is missing (`null`). JSON numbers are used as native values here: a native value is read by value, not by text ([[#points]]).
+
+```turtle
+ex:weather-source
+    a tss:Source ;
+    rdfs:label "Weather station readings"@en ;
+    tss:embedded true ;
+    tss:mutable false ;
+    tss:modifiedAt "2024-05-12T09:00:00Z"^^xsd:dateTime ;
+    tss:committedUntil "2024-05-12T09:00:00Z"^^xsd:dateTime ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-12T09:00:00Z"^^xsd:dateTime ;
+    tss:timeField ex:weather-time-field ;
+    tss:hasField ex:weather-time-field,
+        ex:temperature-field,
+        ex:humidity-field ;
+    tss:points """[
+        { "time": "2024-05-12T08:00:00Z", "temperature": 18.2, "humidity": 61.0 },
+        { "time": "2024-05-12T08:10:00Z", "temperature": 18.4, "humidity": null },
+        { "time": "2024-05-12T08:20:00Z", "temperature": 18.9, "humidity": 59.5 }
+      ]"""^^rdf:JSON .
+
+ex:weather-time-field
+    a tss:Field ;
+    tss:columnName "time" ;
+    tss:datatype xsd:dateTime .
+
+ex:temperature-field
+    a tss:Field ;
+    tss:columnName "temperature" ;
+    tss:datatype xsd:double ;
+    tss:observedProperty quantitykind:Temperature ;
+    tss:unit unit:DEG_C ;
+    tss:sensor ex:thermometer ;
+    tss:featureOfInterest ex:outside-air .
+
+ex:humidity-field
+    a tss:Field ;
+    tss:columnName "humidity" ;
+    tss:datatype xsd:double ;
+    tss:minimum "0"^^xsd:double ;
+    tss:maximum "100"^^xsd:double ;
+    tss:observedProperty quantitykind:RelativeHumidity ;
+    tss:unit unit:PERCENT_RH ;
+    tss:sensor ex:hygrometer ;
+    tss:featureOfInterest ex:outside-air .
+```
+
+Expanded ([[#expanding]]), the three points give five observations: the point at 08:10 only gives a temperature, as it has no humidity.
+</div>
 
 ## Describing fields ## {#describing}
 
@@ -315,6 +375,8 @@ ex:two-series-status-field
 
 A describing field with its own `tss:observedProperty` is also a [=Measured Field=]: its values become observations of their own.
 
+Note: A describing field without `tss:observedProperty`, such as the status above, stays in the source: the expansion ([[#expanding]]) does not carry its values into the observations of the field it describes.
+
 `tss:fieldDescription`, like `tss:sourceDescription`, points to a node that describes the field in any vocabulary:
 
 <div class="example" id="example-field-description">
@@ -333,9 +395,10 @@ ex:value-field
 An [=Embedded Source=] MUST have exactly one `tss:points`: a literal with datatype `rdf:JSON` [[JSON-LD11]] whose value is a JSON array of JSON objects, one object per [=Point=].
 
 - The keys of an object are the `tss:columnName` of the source's fields. A point has no key for a field it has no value for.
-- A value SHOULD be a JSON string that holds the lexical form of the field's datatype: `"2.50"`, not `2.50`. A JSON number loses its text when it is read: `2.50` may come back as `2.5` or as `2.5E0`.
+- A value is a JSON string, a JSON number or a JSON boolean:
+    - A JSON string holds the lexical form of the field's datatype and keeps its text exactly: `"2.50"` stays `2.50`. Use a string when the exact text matters, such as trailing zeros, the precision of a decimal or a time.
+    - A JSON number or boolean is a native value and is read by value, not by text: a JSON number is converted to a value of the field's numeric datatype and a JSON boolean to an `xsd:boolean`, written in the form that conversion gives. `2.50` may come back as `2.5`, since a JSON number has no text of its own once it is read. A native value for a field of another datatype, such as a JSON number for an `xsd:string` field or a JSON boolean for a numeric field, is an error.
 - A missing key, `null` and `""` are an [=Empty Value=]: the point has no value for that field.
-- A key MUST NOT start with `@`, as JSON-LD keywords such as `@context` and `@id` do.
 - Every key SHOULD be the column name of a field. Values under other keys are not read as values of the source.
 - The points have no order. A consumer orders them by the time field.
 
@@ -394,9 +457,66 @@ time;value
 ```
 </div>
 
+<div class="example" id="example-csv-no-header">
+An external source with a CSV file without a header line, and with an open time window: it states neither `tss:from` nor `tss:until`, so every row of the file is read. The columns are found by their `tss:columnIndex`.
+
+```turtle
+ex:headerless-source
+    a tss:Source ;
+    tss:embedded false ;
+    tss:mutable true ;
+    tss:modifiedAt "2024-06-01T00:05:00Z"^^xsd:dateTime ;
+    tss:committedUntil "2024-06-01T00:05:00Z"^^xsd:dateTime ;
+    tss:dataFile <data-no-header.csv> ;
+    tss:format tss:CSV ;
+    tss:header false ;
+    tss:timeField ex:headerless-time-field ;
+    tss:hasField ex:headerless-time-field,
+        ex:headerless-value-field .
+
+ex:headerless-time-field
+    a tss:Field ;
+    tss:columnName "time" ;
+    tss:columnIndex 0 ;
+    tss:datatype xsd:dateTime .
+
+ex:headerless-value-field
+    a tss:Field ;
+    tss:columnName "value" ;
+    tss:columnIndex 1 ;
+    tss:datatype xsd:double .
+```
+
+The data file, relative to the metadata document:
+
+```
+2024-05-01T00:00:00Z,12.5
+2024-05-01T00:15:00Z,12.7
+```
+</div>
+
 ## Parquet ## {#parquet}
 
-A `tss:Parquet` file is read by its column names: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter` and `tss:encoding` have no effect on it. The values keep their Parquet types in the file. To check a value against the field's datatype, the value is written in the lexical form of its Parquet type.
+A `tss:Parquet` file is read by its column names: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Parquet types in the file. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Parquet type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. A Parquet NULL is an [=Empty Value=]. A column of a Parquet type that is not in the table is not supported by this specification.
+
+<table class="data">
+<thead>
+<tr><th>Parquet type</th><th>Lexical form</th><th>Allowed <code>tss:datatype</code></th></tr>
+</thead>
+<tbody>
+<tr><td><code>BOOLEAN</code></td><td><code>true</code> or <code>false</code></td><td><code>xsd:boolean</code></td></tr>
+<tr><td><code>INT32</code>, <code>INT64</code>, <code>INT(8, 16, 32 or 64, signed)</code></td><td>decimal digits, with a <code>-</code> sign when negative</td><td><code>xsd:integer</code>, or the XSD integer type whose range holds the values, such as <code>xsd:int</code> or <code>xsd:long</code></td></tr>
+<tr><td><code>INT(8, 16, 32 or 64, unsigned)</code></td><td>decimal digits</td><td><code>xsd:nonNegativeInteger</code>, or an unsigned XSD type such as <code>xsd:unsignedInt</code></td></tr>
+<tr><td><code>FLOAT</code></td><td>the XSD lexical form of the value, with <code>INF</code>, <code>-INF</code> and <code>NaN</code> for the special values</td><td><code>xsd:float</code></td></tr>
+<tr><td><code>DOUBLE</code></td><td>the same</td><td><code>xsd:double</code></td></tr>
+<tr><td><code>DECIMAL(precision, scale)</code></td><td>decimal digits with a <code>.</code> and exactly <em>scale</em> fraction digits</td><td><code>xsd:decimal</code></td></tr>
+<tr><td><code>STRING</code>, <code>ENUM</code></td><td>the text</td><td><code>xsd:string</code>, or any other datatype that reads a text</td></tr>
+<tr><td><code>DATE</code></td><td><code>YYYY-MM-DD</code></td><td><code>xsd:date</code></td></tr>
+<tr><td><code>TIMESTAMP(isAdjustedToUTC = true)</code>, in milli-, micro- or nanoseconds</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]Z</code>, in UTC, with a fraction only when the value has one</td><td><code>xsd:dateTime</code> (or <code>xsd:dateTimeStamp</code>)</td></tr>
+<tr><td><code>TIMESTAMP(isAdjustedToUTC = false)</code></td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]</code>, without timezone: it is read as UTC ([[#time-and-key]])</td><td><code>xsd:dateTime</code></td></tr>
+<tr><td><code>TIME</code></td><td><code>hh:mm:ss[.fraction]</code></td><td><code>xsd:time</code></td></tr>
+</tbody>
+</table>
 
 <div class="example" id="example-parquet-source">
 The properties that make a source a Parquet source:
@@ -413,7 +533,7 @@ ex:source
 
 A field MAY have one `tss:summary`: a node that holds numbers computed from the values of the field, such as how many values there are and their mean. A consumer can use them without reading the data. Every attribute of a summary is optional, and a summary may be empty.
 
-The numbers of a summary cover the points in its own window: from its `tss:from` (included) until its `tss:until` (not included), normally the [=Time Window=] of the source.
+The numbers of a summary cover the points in the [=Time Window=] of the source: from its `tss:from` (included) until its `tss:until` (not included), with an open side when the source leaves it open. A summary has no window of its own.
 
 A summary states with `tss:missingValuePolicy` which values its numbers leave out. This specification defines one such policy, `tss:ExcludeEmptyValues`: an [=Empty Value=] is not a value, so the numbers leave it out. A text of only spaces is a value.
 
@@ -424,7 +544,6 @@ The attributes of a summary:
 <tr><th>Property</th><th>Value</th><th>Meaning</th></tr>
 </thead>
 <tbody>
-<tr><td><code>tss:from</code>, <code>tss:until</code></td><td><code>xsd:dateTime</code></td><td>the window of the summary</td></tr>
 <tr><td><code>tss:missingValuePolicy</code></td><td>IRI</td><td>which values the numbers leave out, such as <code>tss:ExcludeEmptyValues</code></td></tr>
 <tr><td><code>tss:count</code></td><td><code>xsd:integer</code>, 0 or more</td><td>how many points in the window have a value for the field</td></tr>
 <tr><td><code>tss:missing</code></td><td><code>xsd:integer</code>, 0 or more</td><td>how many points in the window have no value for the field; a time without a point is not counted</td></tr>
@@ -436,7 +555,7 @@ The attributes of a summary:
 </tbody>
 </table>
 
-Only a numeric field ([[#datatypes]]) has `tss:observedMinimum`, `tss:observedMaximum`, `tss:mean` and `tss:median`. They include every value in the window, also values outside the allowed range of the field: the observed minimum and maximum do not replace `tss:minimum` and `tss:maximum`.
+Only a numeric field ([[#datatypes]]) has `tss:observedMinimum`, `tss:observedMaximum`, `tss:mean` and `tss:median`. They include every value in the window, also values outside the expected range of the field: the observed minimum and maximum do not replace `tss:minimum` and `tss:maximum`.
 
 <div class="example" id="example-summary">
 The summary of the value field of <a href="#example-embedded-source">the embedded example</a>:
@@ -444,8 +563,6 @@ The summary of the value field of <a href="#example-embedded-source">the embedde
 ```turtle
 ex:value-field
     tss:summary [
-        tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-        tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
         tss:missingValuePolicy tss:ExcludeEmptyValues ;
         tss:count "5"^^xsd:integer ;
         tss:missing "0"^^xsd:integer ;
@@ -460,6 +577,26 @@ ex:value-field
 ```
 </div>
 
+<div class="example" id="example-summary-missing">
+The summary of the humidity field of <a href="#example-multi-sensor">the multi-sensor example</a>. One of the three points has no humidity: it is counted in `tss:missing`, and the numbers leave it out.
+
+```turtle
+ex:humidity-field
+    tss:summary [
+        tss:missingValuePolicy tss:ExcludeEmptyValues ;
+        tss:count "2"^^xsd:integer ;
+        tss:missing "1"^^xsd:integer ;
+        tss:firstTime "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+        tss:lastTime "2024-05-12T08:20:00Z"^^xsd:dateTime ;
+        tss:observedMinimum "59.5"^^xsd:double ;
+        tss:observedMaximum "61"^^xsd:double ;
+        tss:mean "60.25"^^xsd:double ;
+        tss:median "60.25"^^xsd:double ;
+        prov:generatedAtTime "2024-05-12T09:00:00Z"^^xsd:dateTime
+    ] .
+```
+</div>
+
 A summary is not refreshed by itself. Its `prov:generatedAtTime` says when it was computed, and a consumer can compute the same numbers from the data to check it. A [=Write=] that adds a point recomputes the summaries ([[#updating]]).
 
 # Expanding a source into observations # {#expanding}
@@ -470,7 +607,7 @@ A source can be expanded into observations: every value of a [=Measured Field=] 
 - the observed property: the field's `tss:observedProperty`;
 - the sensor, the feature of interest and the unit: the field's `tss:sensor`, `tss:featureOfInterest` and `tss:unit`, when stated;
 - the time: the time of its point;
-- the result: the value, as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`, with its text as written.
+- the result: the value, as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`, with its text as written (for a native JSON value: as converted, [[#points]]).
 
 To expand a source:
 
@@ -482,22 +619,46 @@ To expand a source:
 
 Which RDF vocabulary the observations are written with is left to the implementer. The output holds no TSS vocabulary, and no description of the source or its fields: an observation only links back to its source. <a href="#example-observations">The observations of the embedded example</a> show the result for two points.
 
+A document with several sources is expanded source by source: the observations of a source only link back to that source.
+
 Note: The expansion does not keep every value: a field without `tss:observedProperty`, such as an identifier or a status, gives no observations.
+
+## Mapping to SOSA (informative) ## {#sosa-mapping}
+
+*This section is informative.* An implementation that has no reason to choose another vocabulary can write the observations with SOSA [[VOCAB-SSN]], QUDT and Dublin Core as in <a href="#example-observations">the example</a>:
+
+<table class="data">
+<thead>
+<tr><th>Part of an observation</th><th>Written as</th></tr>
+</thead>
+<tbody>
+<tr><td>the observation</td><td>a blank node of type <code>sosa:Observation</code></td></tr>
+<tr><td>the source</td><td><code>dcterms:source</code>, with the IRI of the <code>tss:Source</code></td></tr>
+<tr><td>the observed property</td><td><code>sosa:observedProperty</code></td></tr>
+<tr><td>the sensor</td><td><code>sosa:madeBySensor</code></td></tr>
+<tr><td>the feature of interest</td><td><code>sosa:hasFeatureOfInterest</code></td></tr>
+<tr><td>the unit</td><td><code>qudt:hasUnit</code></td></tr>
+<tr><td>the time of the point</td><td><code>sosa:resultTime</code></td></tr>
+<tr><td>the result</td><td><code>sosa:hasSimpleResult</code></td></tr>
+</tbody>
+</table>
 
 # Adding points to a mutable source # {#updating}
 
-The points of an [=Embedded Source=] with `tss:mutable true` may change. A [=Write=] that adds one point:
+A source with `tss:mutable true` is append-only: a [=Write=] adds points, and never changes or removes an existing point. The points of an [=Embedded Source=] with `tss:mutable true` are written as follows. A [=Write=] that adds one point:
 
 1. Checks the new point: every value is in the lexical form of its field's datatype, and no other point has the same [=Key=].
-2. Writes the new `tss:points`: the existing points plus the new one, in time order, every value a JSON string with its text as it was.
-3. Widens the [=Time Window=] when needed: `tss:from` becomes the earlier of `tss:from` and the earliest point, and `tss:until` the later of `tss:until` and the newest point plus one second, since `tss:until` is not in the window. A side that the source leaves open stays open.
+2. Writes the new `tss:points`: the existing points, unchanged, plus the new one, in time order. A value keeps its JSON type: a string keeps its text, a native value stays native.
+3. Widens the [=Time Window=] when needed, so that the new point lies in it: `tss:from` becomes the earlier of `tss:from` and the time of the new point, and `tss:until` becomes a time after the time of the new point when it was not already. The writer chooses that time, and it MUST be after the time of the newest point, since `tss:until` is not in the window. A side that the source leaves open stays open.
 4. Sets `tss:modifiedAt` and `tss:committedUntil` to the time of the write.
-5. Recomputes every [=Stored Summary=] of the source from the points in the new window: its `tss:from` and `tss:until` become the window of the source, `prov:generatedAtTime` the time of the write, and every number it states is computed again. Its `tss:missingValuePolicy` stays.
+5. Recomputes every [=Stored Summary=] of the source from the points in the new window: `prov:generatedAtTime` becomes the time of the write, and every number it states is computed again. Its `tss:missingValuePolicy` stays.
 6. Keeps the change only when the source still meets this specification.
 
 For example, adding `{ "time": "2024-05-12T10:00:00Z", "value": "4766.2" }` to <a href="#example-embedded-source">the embedded example</a> keeps the window, since the new point lies inside it, and sets `tss:modifiedAt` and `tss:committedUntil` to the time of the write, not to `2024-05-12T10:00:00Z`.
 
 An [=External Source=] is never changed this way: managing the data file of an external source is outside this specification. Its `tss:mutable` only tells consumers whether the file may change.
+
+Issue: Should `tss:mutable true` on an external source also mean append-only, so that consumers can cache the rows they have read?
 
 # Vocabulary overview # {#vocabulary}
 
@@ -514,7 +675,7 @@ An [=External Source=] is never changed this way: managing the data file of an e
 <tr><td><code>tss:ExcludeEmptyValues</code></td><td>individual</td><td>value of <code>tss:missingValuePolicy</code></td><td>[[#summaries]]</td></tr>
 <tr><td><code>tss:embedded</code>, <code>tss:mutable</code>, <code>tss:modifiedAt</code>, <code>tss:committedUntil</code></td><td>property</td><td>source</td><td>[[#storage]], [[#change]]</td></tr>
 <tr><td><code>tss:hasField</code>, <code>tss:timeField</code>, <code>tss:key</code></td><td>property</td><td>source</td><td>[[#time-and-key]]</td></tr>
-<tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>source, summary</td><td>[[#window]], [[#summaries]]</td></tr>
+<tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>source</td><td>[[#window]]</td></tr>
 <tr><td><code>tss:points</code></td><td>property</td><td>embedded source</td><td>[[#points]]</td></tr>
 <tr><td><code>tss:dataFile</code>, <code>tss:format</code>, <code>tss:delimiter</code>, <code>tss:header</code>, <code>tss:encoding</code></td><td>property</td><td>external source</td><td>[[#data-files]]</td></tr>
 <tr><td><code>tss:producedBy</code>, <code>tss:sourceDescription</code></td><td>property</td><td>source</td><td>[[#provenance]]</td></tr>
@@ -528,8 +689,27 @@ An [=External Source=] is never changed this way: managing the data file of an e
 
 The vocabulary reuses `rdfs:label`, `rdfs:comment`, `prov:generatedAtTime` [[PROV-O]] and the datatype `rdf:JSON` [[JSON-LD11]].
 
+# Open issues # {#issues}
+
+Issue: The central concept is called a `tss:Source`, while the specification, its shortname and its repository still say "Snippets". Decide on one name: keep "Source" inside "Time Series Snippets", return to "Snippet", or rename the specification.
+
+Issue: Stored summaries always cover the time window of the source. Summaries of a part of the window (for example one per day) are not possible yet.
+
+Issue: The empty string and no value are the same thing ([=Empty Value=]), so a string field cannot hold an empty string. A property that states which text means "no value" could lift this.
+
 <h2 class="no-num" id="conformance">Conformance</h2>
 
 The key words "MUST", "MUST NOT", "SHOULD" and "MAY" in this document are to be interpreted as described in BCP 14 [[!RFC2119]] [[!RFC8174]] when, and only when, they appear in all capitals.
 
 Everything in this specification is normative, except the sections marked as informative, the examples, the notes and the issues.
+
+This specification defines four conformance classes:
+
+: <dfn>Conforming metadata document</dfn>
+:: An RDF document that describes at least one `tss:Source` and meets every requirement on a metadata document, a source, a field, embedded points, a data file and a stored summary in this specification. For an external source, this includes the requirements on the properties that describe the data file, but not on the contents of the data file.
+: <dfn>Conforming data</dfn>
+:: The points of a source, embedded or in its data file, that meet the requirements on points: the time of every point, the key, the lexical form of the values, and the time window.
+: <dfn>Conforming consumer</dfn>
+:: Software that reads a conforming metadata document and its data as this specification says: it selects the rules by `tss:embedded`, reads the points as [[#points]] or [[#data-files]] says, applies the [=Time Window=] and the [=Empty Value=] rules, and reports an error where this specification calls something an error. A <dfn>conforming expander</dfn> is a conforming consumer that also expands a source into observations as [[#expanding]] says.
+: <dfn>Conforming writer</dfn>
+:: Software that changes the points of an [=Embedded Source=] only by the [=Write=] of [[#updating]], and that leaves a conforming metadata document conforming after every Write.
