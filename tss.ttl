@@ -18,16 +18,16 @@
 #
 # "A time of the snippet" below is an xsd:dateTimeStamp literal: an xsd:dateTime whose timezone
 # (Z or an offset such as +02:00) cannot be left out. These are:
-#   on the snippet:   tss:committedUntil, tss:from, tss:until, tss:timeBase
+#   on the snippet:   tss:from, tss:until, tss:timeBase
 #   on a summary:     tss:firstTime, tss:lastTime, tss:generatedAtTime
 #   on a point:       the value of the snippet's tss:timeField
 
 <https://w3id.org/tss#> a owl:Ontology ;
     dcterms:title "RDF Time Series Snippets"@en ;
     dcterms:description "Vocabulary for describing time series snippets in RDF: a snippet, its fields and how to read their values, the summaries of those values, and the points of a snippet whose readings are embedded in its metadata."@en ;
-    dcterms:modified "2026-11-09"^^xsd:date ;
-    owl:versionInfo "0.2.0" ;
-    owl:versionIRI <https://w3id.org/tss/0.2.0#> ;
+    dcterms:modified "2026-11-18"^^xsd:date ;
+    owl:versionInfo "0.3.0" ;
+    owl:versionIRI <https://w3id.org/tss/0.3.0#> ;
     rdfs:comment "This ontology lists the terms of the RDF Time Series Snippets specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
     rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/> ;
     dcterms:contributor <https://pietercolpaert.be/#me>, <https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/> ;
@@ -225,13 +225,13 @@ tss:EmbeddedJSONSnippet a owl:Class ;
 
 tss:EmbeddedRDFSnippet a owl:Class ;
     rdfs:label "Embedded RDF snippet"@en ;
-    rdfs:comment "A snippet whose readings are in the metadata itself, as RDF: each reading is a node (tss:Point) that the snippet links to with tss:hasPoint, in a statement of its own, with one triple per value: the predicate is the IRI of the field, so its fields need no tss:columnName."@en ;
+    rdfs:comment "A snippet whose readings are in the metadata itself, as RDF: each reading is a node (tss:Point) that the snippet links to with tss:hasPoint, in a statement of its own, with one triple per value: the predicate is the IRI of the field, so its fields need no tss:columnName. The metadata document of a growing snippet of this class is an RDF Message Log, to which each new reading is appended as a message."@en ;
     rdfs:subClassOf tss:Snippet ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:ParquetSnippet a owl:Class ;
     rdfs:label "Parquet snippet"@en ;
-    rdfs:comment "A snippet whose readings are the rows of an external Apache Parquet data file (tss:dataFile)."@en ;
+    rdfs:comment "A snippet whose readings are the rows of an external Apache Parquet data file (tss:dataFile). A Parquet file cannot be appended to, so a Parquet snippet always states tss:immutable true."@en ;
     rdfs:subClassOf tss:Snippet ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -243,7 +243,7 @@ tss:CSVSnippet a owl:Class ;
 
 tss:ArrowSnippet a owl:Class ;
     rdfs:label "Arrow snippet"@en ;
-    rdfs:comment "A snippet whose readings are the rows of an external Apache Arrow data file in the Arrow IPC file format (tss:dataFile)."@en ;
+    rdfs:comment "A snippet whose readings are the rows of an external Apache Arrow data file (tss:dataFile), in the Arrow IPC streaming format or in the Arrow IPC file format. A growing Arrow snippet uses the streaming format, to which record batches can be appended; a snippet in the file format always states tss:immutable true."@en ;
     rdfs:subClassOf tss:Snippet ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -296,13 +296,6 @@ tss:DeltaFromBaseline a tss:ValueEncoding ;
 #    Properties of a snippet
 #################################################################
 
-tss:committedUntil a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:label "committed until"@en ;
-    rdfs:comment "The last time the snippet and its readings were checked to be up to date. A time of the snippet."@en ;
-    rdfs:domain tss:Snippet ;
-    rdfs:range xsd:dateTimeStamp ;
-    rdfs:isDefinedBy <https://w3id.org/tss#> .
-
 tss:from a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "from"@en ;
     rdfs:comment "The start of the snippet's time window, included: the window its readings cover. A summary has no window of its own: it covers the snippet's window. A time of the snippet."@en ;
@@ -317,9 +310,9 @@ tss:until a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:mutable a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:label "mutable"@en ;
-    rdfs:comment "true when the snippet is append-only: readings may be added, but none is changed or removed. false when its readings are final: none is added, changed or removed."@en ;
+tss:immutable a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "immutable"@en ;
+    rdfs:comment "true when the snippet is final: no reading is added, changed or removed, and its description does not change any more. false, or not stated, when the snippet is growing: it is append-only, so readings may be added, but none is changed or removed, and its description does not change. A snippet that states true never becomes growing again. A tss:ParquetSnippet, and a tss:ArrowSnippet whose data file is in the Arrow IPC file format, always state true. Named after ldes:immutable."@en ;
     rdfs:domain tss:Snippet ;
     rdfs:range xsd:boolean ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -533,7 +526,7 @@ tss:describesField a owl:ObjectProperty ;
 
 tss:summary a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "summary"@en ;
-    rdfs:comment "The summary of the field's values."@en ;
+    rdfs:comment "The summary of the field's values. Only a field of an immutable snippet has one."@en ;
     rdfs:domain tss:Field ;
     rdfs:range tss:Summary ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -622,7 +615,7 @@ tss:median a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:generatedAtTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "generated at time"@en ;
-    rdfs:comment "When the summary was calculated. A time of the snippet. A summary is not recalculated when the readings change."@en ;
+    rdfs:comment "When the summary was calculated. A time of the snippet. Only an immutable snippet has summaries: they are computed once, from its final readings."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:subPropertyOf prov:generatedAtTime ;
