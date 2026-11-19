@@ -104,6 +104,9 @@ ex:value-field
     tss:unit unit:MicroS-PER-CentiM ;
     tss:sensor ex:sensor-1 ;
     tss:featureOfInterest ex:feature-1 .
+
+ex:conductivity
+    rdfs:subPropertyOf tss:value .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
@@ -133,9 +136,9 @@ MESSAGE
 ```
 </div>
 
-The source is a `tss:EmbeddedRDFSource`: it links to each point with `tss:hasPoint`. Each message holds one row, which here is one point, as the source has one value field. A point states its time with the [=Field Property=] of the time field, which is `tss:time` when the time field does not state one, and its value with the field property of its value field, `ex:conductivity`. Every message ends with the delimiter `MESSAGE`, so a consumer knows that the last message it read is complete.
+The source is a `tss:EmbeddedRDFSource`: it links to each point with `tss:hasPoint`. Each message holds one row, which here is one point, as the source has one value field. A point states its time with the [=Field Property=] of the time field, which is `tss:time` when the time field does not state one, and its value with the field property of its value field, `ex:conductivity`. That property is the publisher's own: the publisher states that it is a subproperty of `tss:value`, so that its readings are aligned with SOSA and SAREF ([[#field-properties]]). Every message ends with the delimiter `MESSAGE`, so a consumer knows that the last message it read is complete.
 
-Expanded ([[#expanding]]), every point also links to its field, and every field property is stated with its place in the TSS vocabulary. The first point and what the expansion adds to it:
+Expanded ([[#expanding]]), every point also links to its field, and the time field gets its default property stated. The first point and what the expansion adds to it:
 
 <div class="example" id="example-expanded-point">
 ```turtle
@@ -146,8 +149,6 @@ ex:source tss:hasPoint [
 ] .
 
 ex:time-field tss:property tss:time .
-ex:value-field tss:property ex:conductivity .
-ex:conductivity rdfs:subPropertyOf tss:value .
 
 # ... and four more points
 ```
@@ -366,15 +367,14 @@ In RDF, the values of a field are stated with its [=Field Property=]: in the poi
 
 For example, the field with column name `value` of a source whose data file is `https://example.org/data.csv` has the default property `https://example.org/data.csv#value`. In the RDF points of a `tss:EmbeddedRDFSource`, a field other than the time field has no default property unless it states a `tss:columnName`. Two fields of the same source MUST NOT have the same field property.
 
-The field property says what role the values have:
+A default property is made by this specification, so this specification also says what it means:
 
-- The field property of the time field is `tss:time`, or a subproperty of it.
-- The field property of a value field is `tss:value`, or a subproperty of it.
-- The field property of a meta field other than the time field is neither `tss:time` nor `tss:value`, nor a subproperty of one of them.
+- The default property of a value field is a subproperty of `tss:value`.
+- The default property of a meta field other than the time field is a property of its own, which is not a subproperty of `tss:value` or `tss:time`.
 
-RDFS and OWL cannot state this about every object of `tss:property`, so this specification states it, and the expansion of a source writes it out for each field, such as `<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value` ([[#expanding]]). Through `tss:time` and `tss:value`, the field properties are aligned with SOSA and SAREF ([[#alignment]]).
+The expansion of a source writes this out for each value field without a `tss:property`, such as `<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value` ([[#expanding]]). Through `tss:time` and `tss:value`, the default properties are aligned with SOSA and SAREF ([[#alignment]]).
 
-Note: The field property of a value field becomes a subproperty of `tss:value` wherever it is used. A publisher therefore states as `tss:property` a property of its own, or uses the default property, rather than a property of another vocabulary that is also used for other things.
+A property that a field states with `tss:property` keeps the meaning that its own vocabulary gives it: this specification does not make it a subproperty of `tss:value` or `tss:time`, and neither does the expansion. A publisher can therefore reuse a property of another vocabulary, such as `sosa:hasSimpleResult` for a value field or `prov:generatedAtTime` for the time field. A publisher that wants the readings of its own property aligned, states in the metadata that the property is a subproperty of `tss:value`, as <a href="#example-embedded-source">the embedded example</a> does. A meta field MUST NOT state `tss:value`, and a field other than the time field MUST NOT state `tss:time`, as its `tss:property`.
 
 ## Point IRIs ## {#point-iris}
 
@@ -973,7 +973,7 @@ A source of any class can be expanded into its points as RDF, in the shape of th
     - the reading: the field property of the value field, with the [=Decoded Value=] as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`. A value without a value encoding keeps its text as written;
     - for each describing field that describes the value field and has a value in the row, its field property with that value.
 4. A value that is not in the lexical form of its datatype is an error.
-5. For each field of the source, add its field property: the field `tss:property` the property, also when it is a default property. For the time field, unless its field property is `tss:time`, add that the field property `rdfs:subPropertyOf` `tss:time`; for each value field, unless its field property is `tss:value`, add that it is `rdfs:subPropertyOf` `tss:value` ([[#field-properties]]).
+5. For each field of the source that states no `tss:property`, add its default property: the field `tss:property` the default property. For a value field, also add that its default property is `rdfs:subPropertyOf` `tss:value` ([[#field-properties]]). A property that a field states itself gets no such statement: what it means is up to its own vocabulary.
 
 A document with several sources is expanded source by source: the points of a source only link to that source and its fields.
 
@@ -1014,7 +1014,7 @@ ex:csv-value-field tss:property <https://example.org/data.csv#value> .
 </tbody>
 </table>
 
-The field property of every value field is a subproperty of `tss:value` ([[#field-properties]]), so its readings are results in SOSA and values in SAREF. The observed property, sensor, feature of interest and unit are stated once, on the field, and reach each point through `tss:field`. Property chains are part of OWL 2 RL [[OWL2-PROFILES]], so a rule reasoner can derive them. From <a href="#example-expanded-point">the expanded point of the embedded example</a>, it derives:
+The default property of every value field is a subproperty of `tss:value`, and so is the property of a value field whose publisher states it ([[#field-properties]]): their readings are results in SOSA and values in SAREF. A property that a publisher does not align keeps its own meaning, and only the rest of the point is derived. The observed property, sensor, feature of interest and unit are stated once, on the field, and reach each point through `tss:field`. Property chains are part of OWL 2 RL [[OWL2-PROFILES]], so a rule reasoner can derive them. From <a href="#example-expanded-point">the expanded point of the embedded example</a>, it derives:
 
 <div class="example" id="example-derived-observation">
 ```turtle

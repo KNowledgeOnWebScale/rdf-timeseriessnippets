@@ -83,7 +83,7 @@ tss:Field a owl:Class ;
 
 tss:ValueField a owl:Class ;
     rdfs:label "Value field"@en ;
-    rdfs:comment "A field whose values are readings: each of its values, with the time of its row, is a tss:Point. Its field property is tss:value or a subproperty of it."@en ;
+    rdfs:comment "A field whose values are readings: each of its values, with the time of its row, is a tss:Point. Its default field property is a subproperty of tss:value; a property it states with tss:property keeps the meaning of its own vocabulary."@en ;
     rdfs:subClassOf tss:Field ;
     owl:disjointWith tss:MetaField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -96,7 +96,7 @@ tss:MetaField a owl:Class ;
 
 tss:Point a owl:Class ;
     rdfs:label "Point"@en ;
-    rdfs:comment "One reading: the value of one value field in one row of a source, with the time of that row. A point has the time (tss:time, or the field property of the time field), its value (the field property of its value field, a subproperty of tss:value), and the values of the describing fields that describe its value field. An expanded point links to its value field with tss:field. A point is a blank node, or an IRI given in the RDF points or made with tss:aboutUrl. Aligned with sosa:Observation and saref:Measurement."@en ;
+    rdfs:comment "One reading: the value of one value field in one row of a source, with the time of that row. A point has the time (tss:time, or the field property of the time field), its value (the field property of its value field), and the values of the describing fields that describe its value field. An expanded point links to its value field with tss:field. A point is a blank node, or an IRI given in the RDF points or made with tss:aboutUrl. Aligned with sosa:Observation and saref:Measurement."@en ;
     rdfs:subClassOf sosa:Observation, saref:Measurement ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -467,7 +467,7 @@ tss:generatedAtTime a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:property a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "property"@en ;
-    rdfs:comment "The RDF property that states the values of the field: in the RDF points of a tss:EmbeddedRDFSource, and in the points that any source is expanded into. Unique within its source. When not stated, it is tss:time for the time field, and otherwise the IRI made of the base IRI (the data file of an external source, the metadata document of an embedded source), '#' and the field's tss:columnName, as CSVW's default propertyUrl {#_name}. The property of a value field is a subproperty of tss:value, that of the time field a subproperty of tss:time; this cannot be stated in OWL for every object of tss:property, so the expansion of a source states it for each field."@en ;
+    rdfs:comment "The RDF property that states the values of the field: in the RDF points of a tss:EmbeddedRDFSource, and in the points that any source is expanded into. Unique within its source. When not stated, it is tss:time for the time field, and otherwise the IRI made of the base IRI (the data file of an external source, the metadata document of an embedded source), '#' and the field's tss:columnName, as CSVW's default propertyUrl {#_name}. The default property of a value field is a subproperty of tss:value; the expansion of a source states this for each such field. A property that a field states itself keeps the meaning of its own vocabulary: it is not made a subproperty of tss:value or tss:time. A meta field does not state tss:value, and only the time field states tss:time."@en ;
     rdfs:domain tss:Field ;
     rdfs:range rdf:Property ;
     skos:closeMatch csvw:propertyUrl ;
@@ -490,7 +490,7 @@ tss:field a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:time a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time"@en ;
-    rdfs:comment "The time of a point: the time of its row, an xsd:dateTimeStamp. The default field property of the time field; a time field that states another tss:property states a subproperty of tss:time."@en ;
+    rdfs:comment "The time of a point: the time of its row, an xsd:dateTimeStamp. The default field property of the time field. A time field that states another tss:property keeps the meaning of that property; its publisher may state that it is a subproperty of tss:time."@en ;
     rdfs:domain tss:Point ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:subPropertyOf sosa:resultTime, saref:hasTimestamp ;
@@ -498,7 +498,7 @@ tss:time a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:value a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "value"@en ;
-    rdfs:comment "The reading of a point. An abstract property: a point states its reading with the field property of its value field, which is a subproperty of tss:value, and has the field's tss:datatype."@en ;
+    rdfs:comment "The reading of a point. An abstract property: a point states its reading with the field property of its value field, as a literal of the field's tss:datatype. The default property of a value field is a subproperty of tss:value; a property that a field states with tss:property is one only when its publisher states so."@en ;
     rdfs:domain tss:Point ;
     rdfs:subPropertyOf sosa:hasSimpleResult, saref:hasValue ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
