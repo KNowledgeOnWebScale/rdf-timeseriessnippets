@@ -12,6 +12,7 @@
 @prefix sosa:    <http://www.w3.org/ns/sosa/> .
 @prefix qudt:    <http://qudt.org/schema/qudt/> .
 @prefix saref:   <https://saref.etsi.org/core/> .
+@prefix prof:    <http://www.w3.org/ns/dx/prof/> .
 
 # The terms of the RDF Time Series Sources vocabulary (tss:): the source and its five classes,
 # its fields, the summaries of their values, the points of an embedded source, and the values
@@ -520,3 +521,15 @@ saref:relatesToProperty owl:propertyChainAxiom ( tss:field tss:observedProperty 
 saref:measurementMadeBy owl:propertyChainAxiom ( tss:field tss:sensor ) .
 saref:isMeasurementOf owl:propertyChainAxiom ( tss:field tss:featureOfInterest ) .
 saref:isMeasuredIn owl:propertyChainAxiom ( tss:field tss:unit ) .
+
+
+#################################################################
+#    RDF Message Stream Profile
+#################################################################
+
+tss:MessageStreamProfile a prof:Profile ;
+    rdfs:label "RDF Time Series Sources message stream profile"@en ;
+    rdfs:comment "The RDF Message Stream Profile of RDF Time Series Sources. A stream that follows it holds description messages (the description of sources and their fields), row messages (one row of one source: the source tss:hasPoint one point per value field with a value, all with the time of the row) and ending messages (tss:immutable true and optionally the stored summaries). Row messages are read with the description message of their source, which comes before them. The focus nodes of a row message are its points; its timestamp is the time of its row, stated with tss:time unless the time field states another tss:property. A stream announces it with dcterms:conformsTo or an HTTP Link with rel=profile."@en ;
+    prof:isProfileOf <https://w3c-cg.github.io/rsp/spec/messages> ;
+    rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-tss/#message-profile> ;
+    rdfs:isDefinedBy <https://w3id.org/tss#> .

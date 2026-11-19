@@ -46,7 +46,7 @@ With RDF Time Series Sources, a publisher keeps the readings compact and describ
 - Each field states the datatype of its values and, for a data file or JSON rows, its column name. It also has a [=Field Property=]: the RDF property that states its values, which by default is made from its column name, as in CSVW [[TABULAR-METADATA]]. Optionally, a value field states what it observes, in which unit, with which sensor, of which feature of interest.
 - A data file can give the time of each row as a step on a regular [=Time Grid=], and state the values of a field as differences from a baseline (`tss:valueEncoding`).
 
-The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a source to which readings are still added, and only fetch the new readings with HTTP Range requests ([[#following]]).
+The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a source to which readings are still added, and only fetch the new readings with HTTP Range requests ([[#following]]). Streamed as RDF messages, the readings follow the RDF Message Stream Profile of this specification ([[#message-profile]]).
 
 Every source can be expanded into its points as RDF, in the same shape as the points of a `tss:EmbeddedRDFSource` ([[#expanding]]). This specification does not map the points onto another vocabulary: the TSS vocabulary is aligned with SOSA [[VOCAB-SSN]] and SAREF [[SAREF]], so that a reasoner can derive their observations and measurements from the points when they are needed ([[#alignment]]).
 
@@ -562,7 +562,7 @@ A `tss:EmbeddedRDFSource` keeps its readings as RDF points. The source links to 
 
 No property of a point has a meaning of its own: the field whose field property it is says what each value means.
 
-The metadata document of a [=Growing Source=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the sources and their fields, and every next message holds one row: the points of one time. A [=Write=] then adds a row by appending one message ([[#updating]]), and a consumer reads the new rows without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two rows are never the same node. A writer MUST end every message of the log of a growing source with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]].
+The metadata document of a [=Growing Source=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the sources and their fields, and every next message holds one row: the points of one time. A [=Write=] then adds a row by appending one message ([[#updating]]), and a consumer reads the new rows without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two rows are never the same node. A writer MUST end every message of the log of a growing source with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]]. The log follows the RDF Message Stream Profile of this specification ([[#message-profile]]).
 
 ## JSON rows ## {#json-points}
 
@@ -1185,6 +1185,83 @@ A consumer MAY check that the bytes it read before did not change, by asking for
 
 The metadata document of a growing `tss:EmbeddedJSONSource` is not append-only: a [=Write=] rewrites `tss:points`. A consumer that follows it asks for the whole document again with a conditional request ([[#polling]]). The existing objects of `tss:points` do not change and stay in the same order ([[#updating-embedded]]): when the consumer has read *n* objects, it emits the objects after the first *n*. When the first *n* objects are not the ones it read, it falls back as in [[#range-requests]], step 4.
 
+# RDF Message Stream Profile # {#message-profile}
+
+RDF Time Series Sources is an RDF Message Stream Profile [[RDF-MESSAGES]]: it says which messages a stream of TSS readings holds, how these messages depend on each other, and where an RDF stream processing engine finds the focus nodes and the timestamp of each message. Two kinds of streams follow this profile:
+
+- the RDF Message Log of a growing `tss:EmbeddedRDFSource` ([[#rdf-points]]);
+- the expansion of a source of any class ([[#expanding]]), when it is written as an RDF Message Stream or Log: the description of the source and its fields first, then one message per row in the [=Time Window=], and an ending message when the source is immutable. A CSV, Parquet or Arrow source can so be streamed as RDF messages.
+
+Note: The section on profiles in RDF Messages is still being written. This profile follows the direction of the RDF Stream Processing Community Group: a profile says what its messages look like, where their timestamps are, and how messages relate to each other.
+
+## Messages ## {#message-kinds}
+
+A stream that follows this profile holds three kinds of messages:
+
+<table class="data">
+<thead>
+<tr><th>Message</th><th>What it holds</th><th>Focus nodes</th><th>Timestamp</th></tr>
+</thead>
+<tbody>
+<tr><td>description message</td><td>the description of one or more sources and their fields, as in a metadata document, without points; in an expansion, also the default field properties of [[#expanding]], step 5</td><td>each source: the subject of an <code>rdf:type</code> that is a source class</td><td>none</td></tr>
+<tr><td>row message</td><td>one [=Row=] of one source: the source links with <code>tss:hasPoint</code> to one point for each value field that has a value in the row ([[#rdf-points]])</td><td>each point: an object of <code>tss:hasPoint</code></td><td>the time of the row</td></tr>
+<tr><td>ending message</td><td><code>tss:immutable true</code> for a source, and optionally the [=Stored Summaries=] of its fields ([[#ending]])</td><td>the source</td><td>none</td></tr>
+</tbody>
+</table>
+
+- The messages of a source are not independent: a row message is read with the description of its source, as RDF Messages allows a profile to say. The description message of a source MUST come before its row messages, and its ending message after them. A consumer that starts reading a stream after its description message needs the description from elsewhere, such as from the start of the RDF Message Log.
+- A row message holds exactly one row of exactly one source, and nothing else. The points of a row all have the same time.
+- The timestamp of a row message is the time of its row: on each of its points, the object of the [=Field Property=] of the time field. That is `tss:time` unless the time field states another `tss:property`, so that an engine usually finds it without the description message. `tss:time` is a subproperty of `sosa:resultTime` ([[#alignment]]), the property that RDF Messages suggests to assume as the timestamp of SOSA observations.
+- The order of the messages is the order in which the rows were written, which need not be the order of their times. An engine orders rows by their timestamp.
+- Every message ends with a message delimiter, as [[#rdf-points]] requires for the log of a growing source.
+
+## Announcing the profile ## {#announcing-profile}
+
+The profile is identified by `tss:MessageStreamProfile`: a `prof:Profile` [[DX-PROF]] of RDF Messages. A publisher MAY announce that a stream or log follows the profile:
+
+- in the stream itself, in its first description message, by stating that the document or stream conforms to it: `<> dcterms:conformsTo tss:MessageStreamProfile`;
+- over HTTP, with a link to the profile [[RFC6906]]: `Link: <https://w3id.org/tss#MessageStreamProfile>; rel="profile"`.
+
+<div class="example" id="example-message-stream">
+<a href="#example-csv-source">The CSV example</a>, expanded and written as an RDF Message Log that follows the profile: a description message, then one row message per row.
+
+```turtle
+VERSION "1.2-messages"
+PREFIX tss: <https://w3id.org/tss#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ex: <https://example.org/ex#>
+
+<> dcterms:conformsTo tss:MessageStreamProfile .
+
+ex:csv-source a tss:CSVSource ;
+    tss:timeField ex:csv-time-field ;
+    tss:hasField ex:csv-time-field, ex:csv-value-field .
+# ... and the rest of the description of the source and its fields
+
+ex:csv-time-field tss:property tss:time .
+ex:csv-value-field tss:property <https://example.org/data.csv#value> .
+<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value .
+MESSAGE
+ex:csv-source tss:hasPoint [
+    tss:field ex:csv-value-field ;
+    tss:time "2024-05-01T00:00:00Z"^^xsd:dateTime ;
+    <https://example.org/data.csv#value> "12.5"^^xsd:double
+] .
+MESSAGE
+ex:csv-source tss:hasPoint [
+    tss:field ex:csv-value-field ;
+    tss:time "2024-05-01T00:15:00Z"^^xsd:dateTime ;
+    <https://example.org/data.csv#value> "12.7"^^xsd:double
+] .
+MESSAGE
+```
+
+An engine takes the timestamp of each row message from `tss:time`, and its focus node from `tss:hasPoint`.
+</div>
+
+
 # Vocabulary overview # {#vocabulary}
 
 *This section is informative.* All terms are in the namespace `https://w3id.org/tss#`.
@@ -1203,6 +1280,7 @@ The metadata document of a growing `tss:EmbeddedJSONSource` is not append-only: 
 <tr><td><code>tss:MissingValuePolicy</code>, <code>tss:ValueEncoding</code></td><td>class</td><td>-</td><td>[[#summaries]], [[#value-encoding]]</td></tr>
 <tr><td><code>tss:ExcludeEmptyValues</code></td><td>individual</td><td>value of <code>tss:missingValuePolicy</code></td><td>[[#summaries]]</td></tr>
 <tr><td><code>tss:DeltaFromBaseline</code></td><td>individual</td><td>value of <code>tss:valueEncoding</code></td><td>[[#value-encoding]]</td></tr>
+<tr><td><code>tss:MessageStreamProfile</code></td><td>individual, a <code>prof:Profile</code></td><td>object of <code>dcterms:conformsTo</code></td><td>[[#message-profile]]</td></tr>
 <tr><td><code>tss:immutable</code></td><td>property</td><td>source</td><td>[[#change]]</td></tr>
 <tr><td><code>tss:hasField</code>, <code>tss:timeField</code>, <code>tss:key</code></td><td>property</td><td>source</td><td>[[#time-and-key]]</td></tr>
 <tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>source</td><td>[[#window]]</td></tr>
