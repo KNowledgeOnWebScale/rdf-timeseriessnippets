@@ -81,8 +81,8 @@ ex:source
     a tss:EmbeddedRDFSource ;
     rdfs:label "Conductivity readings"@en ;
     tss:producedBy ex:producer ;
-    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
     tss:timeField ex:time-field ;
     tss:key ex:time-field ;
     tss:hasField ex:time-field,
@@ -91,7 +91,7 @@ ex:source
 ex:time-field
     a tss:MetaField ;
     rdfs:label "Observation time"@en ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:value-field
     a tss:ValueField ;
@@ -109,27 +109,27 @@ ex:conductivity
     rdfs:subPropertyOf tss:value .
 MESSAGE
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     ex:conductivity "4810.5"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T08:15:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:15:00Z"^^xsd:dateTime ;
     ex:conductivity "4722.4"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T08:30:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:30:00Z"^^xsd:dateTime ;
     ex:conductivity "4751.9"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T09:15:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T09:15:00Z"^^xsd:dateTime ;
     ex:conductivity "4719.3"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T09:45:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T09:45:00Z"^^xsd:dateTime ;
     ex:conductivity "4783.6"^^xsd:double
 ] .
 MESSAGE
@@ -144,7 +144,7 @@ Expanded ([[#expanding]]), every point also links to its field, and the time fie
 ```turtle
 ex:source tss:hasPoint [
     tss:field ex:value-field ;
-    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     ex:conductivity "4810.5"^^xsd:double
 ] .
 
@@ -260,13 +260,13 @@ All sources of a document MUST be embedded sources, or all MUST be external sour
 
 ### Times ### {#times}
 
-A time of a source is a date and a time of day with a timezone, such as `"2024-05-12T08:00:00Z"`: an `xsd:dateTimeStamp` [[XMLSCHEMA11-2]], an `xsd:dateTime` whose timezone cannot be left out. The times of a source are:
+A time of a source is a date and a time of day with a timezone, such as `"2024-05-12T08:00:00Z"`: an `xsd:dateTime` [[XMLSCHEMA11-2]] whose timezone is not left out. The times of a source are:
 
 - on the source: `tss:from`, `tss:until` and `tss:timeBase`;
 - on a [=Stored Summary=]: `tss:firstTime`, `tss:lastTime` and `tss:generatedAtTime`;
 - in each row: its value for the [=Time Field=], which is also the time of every point in the row.
 
-The `tss:datatype` of the time field MUST be `xsd:dateTimeStamp`. A time stated in the metadata MUST be a literal with datatype `xsd:dateTimeStamp`. Every time MUST have a timezone: `Z` or an offset such as `+02:00`; a time without one is not valid. Times are compared as the moments they stand for: two times that are the same moment are the same time.
+The `tss:datatype` of the time field MUST be `xsd:dateTime` or `xsd:dateTimeStamp`. A time stated in the metadata MUST be a literal with one of these two datatypes. Every time MUST have a timezone: `Z` or an offset such as `+02:00`; a time without one is not valid, also when its datatype is `xsd:dateTime`, which allows one to be left out elsewhere. A publisher SHOULD use `xsd:dateTime`: `xsd:dateTimeStamp` says the same, as an `xsd:dateTime` whose timezone cannot be left out, but fewer RDF systems support it. Times are compared as the moments they stand for: two times that are the same moment are the same time.
 
 ### The time field and the key ### {#time-and-key}
 
@@ -422,8 +422,8 @@ ex:weather-source
     a tss:EmbeddedRDFSource ;
     rdfs:label "Weather station readings"@en ;
     tss:immutable true ;
-    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-    tss:until "2024-05-12T09:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-12T09:00:00Z"^^xsd:dateTime ;
     tss:timeField ex:weather-time-field ;
     tss:hasField ex:weather-time-field,
         ex:temperature-field,
@@ -431,7 +431,7 @@ ex:weather-source
 
 ex:weather-time-field
     a tss:MetaField ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:temperature-field
     a tss:ValueField ;
@@ -454,23 +454,23 @@ ex:humidity-field
     tss:featureOfInterest ex:outside-air .
 
 ex:weather-source tss:hasPoint [
-    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     ex:temperature "18.2"^^xsd:double
 ], [
-    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     ex:humidity "61.0"^^xsd:double
 ] .
 
 ex:weather-source tss:hasPoint [
-    tss:time "2024-05-12T08:10:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:10:00Z"^^xsd:dateTime ;
     ex:temperature "18.4"^^xsd:double
 ] .
 
 ex:weather-source tss:hasPoint [
-    tss:time "2024-05-12T08:20:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:20:00Z"^^xsd:dateTime ;
     ex:temperature "18.9"^^xsd:double
 ], [
-    tss:time "2024-05-12T08:20:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:20:00Z"^^xsd:dateTime ;
     ex:humidity "59.5"^^xsd:double
 ] .
 ```
@@ -489,8 +489,8 @@ Two series in one embedded source: a value, and a status that describes it. The 
 ex:two-series-source
     a tss:EmbeddedRDFSource ;
     tss:immutable true ;
-    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
     tss:timeField ex:two-series-time-field ;
     tss:key ex:two-series-time-field ;
     tss:hasField ex:two-series-time-field,
@@ -499,7 +499,7 @@ ex:two-series-source
 
 ex:two-series-time-field
     a tss:MetaField ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:two-series-value-field
     a tss:ValueField ;
@@ -515,13 +515,13 @@ ex:two-series-status-field
     tss:describesField ex:two-series-value-field .
 
 ex:two-series-source tss:hasPoint [
-    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     ex:conductivity "4810.5"^^xsd:double ;
     ex:status "ok"^^xsd:string
 ] .
 
 ex:two-series-source tss:hasPoint [
-    tss:time "2024-05-12T08:15:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T08:15:00Z"^^xsd:dateTime ;
     ex:conductivity "4722.4"^^xsd:double ;
     ex:status "estimated"^^xsd:string
 ] .
@@ -583,8 +583,8 @@ The readings of <a href="#example-embedded-source">the embedded example</a> as J
 ex:json-source
     a tss:EmbeddedJSONSource ;
     tss:immutable false ;
-    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
     tss:timeField ex:json-time-field ;
     tss:hasField ex:json-time-field,
         ex:json-value-field ;
@@ -599,7 +599,7 @@ ex:json-source
 ex:json-time-field
     a tss:MetaField ;
     tss:columnName "time" ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:json-value-field
     a tss:ValueField ;
@@ -631,7 +631,7 @@ An external source with a CSV file. It states its delimiter; the header line and
 ex:csv-source
     a tss:CSVSource ;
     tss:immutable true ;
-    tss:from "2024-05-01T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-01T00:00:00Z"^^xsd:dateTime ;
     tss:dataFile <https://example.org/data.csv> ;
     tss:delimiter ";" ;
     tss:timeField ex:csv-time-field ;
@@ -641,7 +641,7 @@ ex:csv-source
 ex:csv-time-field
     a tss:MetaField ;
     tss:columnName "time" ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:csv-value-field
     a tss:ValueField ;
@@ -675,7 +675,7 @@ ex:headerless-time-field
     a tss:MetaField ;
     tss:columnName "time" ;
     tss:columnIndex 0 ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:headerless-value-field
     a tss:ValueField ;
@@ -711,7 +711,7 @@ A Parquet file ends with a footer that indexes its row groups, so rows cannot be
 <tr><td><code>DECIMAL(precision, scale)</code></td><td>decimal digits with a <code>.</code> and exactly <em>scale</em> fraction digits</td><td><code>xsd:decimal</code></td></tr>
 <tr><td><code>STRING</code>, <code>ENUM</code></td><td>the text</td><td><code>xsd:string</code>, or any other datatype that reads a text</td></tr>
 <tr><td><code>DATE</code></td><td><code>YYYY-MM-DD</code></td><td><code>xsd:date</code></td></tr>
-<tr><td><code>TIMESTAMP(isAdjustedToUTC = true)</code>, in milli-, micro- or nanoseconds</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]Z</code>, in UTC, with a fraction only when the value has one</td><td><code>xsd:dateTimeStamp</code>, or <code>xsd:dateTime</code> for a field that is not the time field</td></tr>
+<tr><td><code>TIMESTAMP(isAdjustedToUTC = true)</code>, in milli-, micro- or nanoseconds</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]Z</code>, in UTC, with a fraction only when the value has one</td><td><code>xsd:dateTime</code> or <code>xsd:dateTimeStamp</code></td></tr>
 <tr><td><code>TIMESTAMP(isAdjustedToUTC = false)</code></td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]</code>, without timezone, so it cannot be the column of the time field ([[#times]])</td><td><code>xsd:dateTime</code></td></tr>
 <tr><td><code>TIME</code></td><td><code>hh:mm:ss[.fraction]</code></td><td><code>xsd:time</code></td></tr>
 </tbody>
@@ -752,7 +752,7 @@ The data file is read by its column names, as a Parquet file is: a field's colum
 <tr><td><code>Decimal</code>(precision, scale)</td><td>decimal digits with a <code>.</code> and exactly <em>scale</em> fraction digits</td><td><code>xsd:decimal</code></td></tr>
 <tr><td><code>Utf8</code>, <code>LargeUtf8</code>, <code>Utf8View</code></td><td>the text</td><td><code>xsd:string</code>, or any other datatype that reads a text</td></tr>
 <tr><td><code>Date</code> (in days or in milliseconds)</td><td><code>YYYY-MM-DD</code></td><td><code>xsd:date</code></td></tr>
-<tr><td><code>Timestamp</code> with a timezone, in seconds, milli-, micro- or nanoseconds</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]Z</code>, in UTC, with a fraction only when the value has one</td><td><code>xsd:dateTimeStamp</code>, or <code>xsd:dateTime</code> for a field that is not the time field</td></tr>
+<tr><td><code>Timestamp</code> with a timezone, in seconds, milli-, micro- or nanoseconds</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]Z</code>, in UTC, with a fraction only when the value has one</td><td><code>xsd:dateTime</code> or <code>xsd:dateTimeStamp</code></td></tr>
 <tr><td><code>Timestamp</code> without a timezone</td><td><code>YYYY-MM-DDThh:mm:ss[.fraction]</code>, without timezone, so it cannot be the column of the time field ([[#times]])</td><td><code>xsd:dateTime</code></td></tr>
 <tr><td><code>Time</code></td><td><code>hh:mm:ss[.fraction]</code></td><td><code>xsd:time</code></td></tr>
 </tbody>
@@ -799,10 +799,10 @@ The readings of <a href="#example-embedded-source">the embedded example</a> in a
 ex:grid-source
     a tss:CSVSource ;
     tss:immutable true ;
-    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
     tss:dataFile <https://example.org/grid.csv> ;
-    tss:timeBase "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    tss:timeBase "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     tss:timeStep "PT15M"^^xsd:duration ;
     tss:timeField ex:grid-time-field ;
     tss:stepField ex:grid-step-field ;
@@ -813,7 +813,7 @@ ex:grid-source
 
 ex:grid-time-field
     a tss:MetaField ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:grid-step-field
     a tss:MetaField ;
@@ -867,7 +867,7 @@ ex:delta-source
 ex:delta-time-field
     a tss:MetaField ;
     tss:columnName "time" ;
-    tss:datatype xsd:dateTimeStamp .
+    tss:datatype xsd:dateTime .
 
 ex:delta-value-field
     a tss:ValueField ;
@@ -927,13 +927,13 @@ ex:value-field
         tss:missingValuePolicy tss:ExcludeEmptyValues ;
         tss:count "5"^^xsd:integer ;
         tss:missing "0"^^xsd:integer ;
-        tss:firstTime "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-        tss:lastTime "2024-05-12T09:45:00Z"^^xsd:dateTimeStamp ;
+        tss:firstTime "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+        tss:lastTime "2024-05-12T09:45:00Z"^^xsd:dateTime ;
         tss:observedMinimum "4719.3"^^xsd:double ;
         tss:observedMaximum "4810.5"^^xsd:double ;
         tss:mean "4757.54"^^xsd:double ;
         tss:median "4751.9"^^xsd:double ;
-        tss:generatedAtTime "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp
+        tss:generatedAtTime "2024-05-12T09:46:10Z"^^xsd:dateTime
     ] .
 ```
 </div>
@@ -947,13 +947,13 @@ ex:humidity-field
         tss:missingValuePolicy tss:ExcludeEmptyValues ;
         tss:count "2"^^xsd:integer ;
         tss:missing "1"^^xsd:integer ;
-        tss:firstTime "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
-        tss:lastTime "2024-05-12T08:20:00Z"^^xsd:dateTimeStamp ;
+        tss:firstTime "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+        tss:lastTime "2024-05-12T08:20:00Z"^^xsd:dateTime ;
         tss:observedMinimum "59.5"^^xsd:double ;
         tss:observedMaximum "61.0"^^xsd:double ;
         tss:mean "60.25"^^xsd:double ;
         tss:median "60.25"^^xsd:double ;
-        tss:generatedAtTime "2024-05-12T09:00:00Z"^^xsd:dateTimeStamp
+        tss:generatedAtTime "2024-05-12T09:00:00Z"^^xsd:dateTime
     ] .
 ```
 </div>
@@ -969,7 +969,7 @@ A source of any class can be expanded into its points as RDF, in the shape of th
 3. For each row, and for each value field that has a value in it, make one point. The point is the RDF point itself for a `tss:EmbeddedRDFSource`, the IRI that `tss:aboutUrl` makes ([[#point-iris]]) when the value field states one, and a new blank node otherwise. Add:
     - the link from the source: the source `tss:hasPoint` the point;
     - the link to its value field: the point `tss:field` the field;
-    - the time: the [=Field Property=] of the time field, with the time of the row as an `xsd:dateTimeStamp` literal. On a [=Time Grid=], that is the time of the row's step;
+    - the time: the [=Field Property=] of the time field, with the time of the row as a literal with the time field's `tss:datatype`. On a [=Time Grid=], that is the time of the row's step;
     - the reading: the field property of the value field, with the [=Decoded Value=] as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`. A value without a value encoding keeps its text as written;
     - for each describing field that describes the value field and has a value in the row, its field property with that value.
 4. A value that is not in the lexical form of its datatype is an error.
@@ -985,7 +985,7 @@ The first row of <a href="#example-csv-source">the CSV example</a>, expanded. Th
 ```turtle
 ex:csv-source tss:hasPoint [
     tss:field ex:csv-value-field ;
-    tss:time "2024-05-01T00:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-01T00:00:00Z"^^xsd:dateTime ;
     <https://example.org/data.csv#value> "12.5"^^xsd:double
 ] .
 
@@ -1023,7 +1023,7 @@ The default property of every value field is a subproperty of `tss:value`, and s
 @prefix qudt: <http://qudt.org/schema/qudt/> .
 
 [] a sosa:Observation, saref:Measurement ;
-    sosa:resultTime "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
+    sosa:resultTime "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     sosa:hasSimpleResult "4810.5"^^xsd:double ;
     sosa:observedProperty quantitykind:ElectricConductivity ;
     sosa:madeBySensor ex:sensor-1 ;
@@ -1061,7 +1061,7 @@ A new row for <a href="#example-embedded-source">the embedded example</a>, appen
 
 ```turtle
 ex:source tss:hasPoint [
-    tss:time "2024-05-12T10:00:00Z"^^xsd:dateTimeStamp ;
+    tss:time "2024-05-12T10:00:00Z"^^xsd:dateTime ;
     ex:conductivity "4766.2"^^xsd:double
 ] .
 MESSAGE

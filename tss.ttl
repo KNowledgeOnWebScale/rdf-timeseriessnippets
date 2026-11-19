@@ -17,8 +17,8 @@
 # its fields, the summaries of their values, the points of an embedded source, and the values
 # they take.
 #
-# "A time of the source" below is an xsd:dateTimeStamp literal: an xsd:dateTime whose timezone
-# (Z or an offset such as +02:00) cannot be left out. These are:
+# "A time of the source" below is an xsd:dateTime literal with a timezone (Z or an offset such
+# as +02:00), which is not left out; xsd:dateTimeStamp is allowed too. These are:
 #   on the source:   tss:from, tss:until, tss:timeBase
 #   on a summary:     tss:firstTime, tss:lastTime, tss:generatedAtTime
 #   in a row:         the value of the source's tss:timeField, stated on every point with tss:time
@@ -139,14 +139,14 @@ tss:from a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "from"@en ;
     rdfs:comment "The start of the source's time window, included: the window its readings cover. A summary has no window of its own: it covers the source's window. A time of the source."@en ;
     rdfs:domain tss:Source ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:until a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "until"@en ;
     rdfs:comment "The end of the source's time window, not included; it comes after tss:from. A time of the source."@en ;
     rdfs:domain tss:Source ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:immutable a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -178,7 +178,7 @@ tss:hasField a owl:ObjectProperty ;
 
 tss:timeField a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "time field"@en ;
-    rdfs:comment "The field of the source that holds the time of each reading. Its values are times of the source, so its tss:datatype is xsd:dateTimeStamp: every time has a timezone. In a source with a time grid the data file has no column for it: a row's time is computed from its step (tss:stepField)."@en ;
+    rdfs:comment "The field of the source that holds the time of each reading. Its values are times of the source, so its tss:datatype is xsd:dateTime (or xsd:dateTimeStamp), and every time has a timezone. In a source with a time grid the data file has no column for it: a row's time is computed from its step (tss:stepField)."@en ;
     rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
@@ -255,7 +255,7 @@ tss:timeBase a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time base"@en ;
     rdfs:comment "The time of step 0 of the source's time grid: step n is at tss:timeBase + n × tss:timeStep. A time of the source. It anchors the grid and is not a bound of the time window, so it stays the same when tss:from or tss:until change. Only a source with an external data file (a tss:ParquetSource, tss:CSVSource or tss:ArrowSource) has a time grid; it states tss:timeBase and tss:timeStep together, or neither. The points of an embedded source state their own time."@en ;
     rdfs:domain tss:Source ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:timeStep a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -414,14 +414,14 @@ tss:firstTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "first time"@en ;
     rdfs:comment "The time of the first reading in the source's time window with a value for the field. A time of the source."@en ;
     rdfs:domain tss:Summary ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:lastTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "last time"@en ;
     rdfs:comment "The time of the last reading in the source's time window with a value for the field. A time of the source."@en ;
     rdfs:domain tss:Summary ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:observedMinimum a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -456,7 +456,7 @@ tss:generatedAtTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "generated at time"@en ;
     rdfs:comment "When the summary was calculated. A time of the source. Only an immutable source has summaries: they are computed once, from its final readings."@en ;
     rdfs:domain tss:Summary ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:subPropertyOf prov:generatedAtTime ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -490,9 +490,9 @@ tss:field a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:time a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time"@en ;
-    rdfs:comment "The time of a point: the time of its row, an xsd:dateTimeStamp. The default field property of the time field. A time field that states another tss:property keeps the meaning of that property; its publisher may state that it is a subproperty of tss:time."@en ;
+    rdfs:comment "The time of a point: the time of its row, an xsd:dateTime with a timezone. The default field property of the time field. A time field that states another tss:property keeps the meaning of that property; its publisher may state that it is a subproperty of tss:time."@en ;
     rdfs:domain tss:Point ;
-    rdfs:range xsd:dateTimeStamp ;
+    rdfs:range xsd:dateTime ;
     rdfs:subPropertyOf sosa:resultTime, saref:hasTimestamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
