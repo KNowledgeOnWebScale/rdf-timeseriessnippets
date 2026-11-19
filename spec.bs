@@ -186,7 +186,7 @@ An <dfn>Embedded Source</dfn> keeps its rows in the metadata: a `tss:EmbeddedRDF
 
 The <dfn id="dfn-time-grid">Time Grid</dfn> of an external source is a series of times at regular steps: step 0 at `tss:timeBase`, and every next step `tss:timeStep` later ([[#time-grid]]).
 
-The <dfn>Step Field</dfn> of an external source with a time grid is the field whose column holds the step of each row (`tss:stepField`).
+The <dfn>Step Field</dfn> of an external source with a time grid is the field whose column holds the step of each row (`tss:stepField`). Without one, the step of a row is its position in the data file.
 
 An <dfn>Empty Value</dfn> is the absence of a value: an empty CSV cell, a Parquet or Arrow null, a row of RDF points without a point for a value field, an RDF point without a triple for a describing field, a JSON row without the field's key or with `null` for it, or the empty text `""`. A text that holds only spaces is not empty. Consequently, the empty string cannot be a value: an empty text and no value are the same thing.
 
@@ -225,7 +225,7 @@ A metadata document MUST describe at least one source. Each source in the docume
 <tr><td><code>tss:header</code></td><td><code>xsd:boolean</code></td><td>optional, for a <code>tss:CSVSource</code>; default <code>true</code></td><td>not allowed</td></tr>
 <tr><td><code>tss:timeBase</code></td><td>a time ([[#times]])</td><td>optional, together with <code>tss:timeStep</code></td><td>not allowed</td></tr>
 <tr><td><code>tss:timeStep</code></td><td><code>xsd:duration</code>, more than zero</td><td>optional, together with <code>tss:timeBase</code></td><td>not allowed</td></tr>
-<tr><td><code>tss:stepField</code></td><td>one of its fields</td><td>required with a time grid; not allowed without one</td><td>not allowed</td></tr>
+<tr><td><code>tss:stepField</code></td><td>one of its fields</td><td>optional with a time grid; not allowed without one</td><td>not allowed</td></tr>
 <tr><td><code>tss:producedBy</code></td><td>IRI</td><td>optional</td><td>optional</td></tr>
 <tr><td><code>rdfs:label</code></td><td>literal</td><td>optional, any number</td><td>optional, any number</td></tr>
 <tr><td><code>tss:sourceDescription</code></td><td>a node, any vocabulary</td><td>optional</td><td>optional</td></tr>
@@ -784,13 +784,12 @@ Step n is at `tss:timeBase` + n × `tss:timeStep`: each part of the step (years,
 
 Note: With years or months, the steps are calendar steps, not equal lengths of time: a month has 28 to 31 days, and a day past the end of a month becomes its last day (2021-01-31 + P1M is 2021-02-28).
 
-With a time grid, a column of the data file holds the step of each row. The source names the field of that column, the [=Step Field=], with exactly one `tss:stepField`, as `tss:timeField` names the time field:
+A row's time is the time of its step: that is the row's value for the time field. The data file has no column for the time field, so the time field MUST NOT state a `tss:columnName` or a `tss:columnIndex`. The step of a row is given in one of two ways:
 
-- The step field MUST be one of the source's own fields (`tss:hasField`), and MUST NOT be its time field. Its `tss:datatype` MUST be `xsd:integer`.
-- Every row MUST have a step: a whole number of 0 or more. No two rows may be at the same step.
-- A row's time is the time of its step: that is the row's value for the time field. The data file has no column for the time field, so the time field MUST NOT state a `tss:columnName` or a `tss:columnIndex`.
+- **With a step field.** A column of the data file holds the step of each row. The source names the field of that column, the [=Step Field=], with one `tss:stepField`, as `tss:timeField` names the time field. The step field MUST be one of the source's own fields (`tss:hasField`), and MUST NOT be its time field. Its `tss:datatype` MUST be `xsd:integer`. Every row MUST have a step: a whole number of 0 or more. No two rows may be at the same step. Rows may be left out, and they may be in any order.
+- **Without a step field.** The step of a row is its position in the data file: the first row, after the header line of a CSV file, is at step 0, the next at step 1, and so on. In a Parquet or Arrow file, the rows are counted across its row groups or record batches, in the order of the file. Every step up to the last row then has a row: a step without readings is a row with an [=Empty Value=] for every value field.
 
-A source without a time grid MUST NOT state a `tss:stepField`.
+A step field is useful when the data has gaps; data that has been cleaned up to one row per step does not need one, and leaves out the overhead of a step column. A source without a time grid MUST NOT state a `tss:stepField`.
 
 <div class="example" id="example-time-grid">
 The readings of <a href="#example-embedded-source">the embedded example</a> in a CSV file, on a time grid of 15 minutes from 08:00. The column `step` holds the step of each row; the time field has no column.
@@ -838,6 +837,42 @@ step,value
 ```
 
 Steps 3, 4 and 6 have no row. Step 5 is at 2024-05-12T08:00:00Z + 5 × PT15M, which is 2024-05-12T09:15:00Z.
+</div>
+
+<div class="example" id="example-time-grid-no-step">
+The first three readings, which have no gaps, on the same time grid without a step field. The source states no `tss:stepField` and has no step column: each row is at the step of its position.
+
+```turtle
+ex:position-source
+    a tss:CSVSource ;
+    tss:immutable true ;
+    tss:dataFile <https://example.org/position.csv> ;
+    tss:timeBase "2024-05-12T08:00:00Z"^^xsd:dateTime ;
+    tss:timeStep "PT15M"^^xsd:duration ;
+    tss:timeField ex:position-time-field ;
+    tss:hasField ex:position-time-field,
+        ex:position-value-field .
+
+ex:position-time-field
+    a tss:MetaField ;
+    tss:datatype xsd:dateTime .
+
+ex:position-value-field
+    a tss:ValueField ;
+    tss:columnName "value" ;
+    tss:datatype xsd:double .
+```
+
+The data file:
+
+```
+value
+4810.5
+4722.4
+4751.9
+```
+
+The rows are at steps 0, 1 and 2: 08:00, 08:15 and 08:30.
 </div>
 
 ## Value encoding ## {#value-encoding}
@@ -1078,7 +1113,7 @@ The data file of a growing [=External Source=] only grows: rows are appended to 
 - **Arrow:** the data file is in the IPC streaming format ([[#arrow]]). A writer appends complete encapsulated messages only: record batches, and dictionary batches, including delta dictionary batches, when a dictionary-encoded column needs new values. The schema message at the start of the stream MUST NOT change. A writer MUST NOT write the end-of-stream marker while the source is growing.
 - **Parquet**, and Arrow in the IPC file format, cannot be appended to: such a source is never growing ([[#parquet]], [[#arrow]]).
 
-The time of a new row MUST lie in the [=Time Window=] of the source. On a [=Time Grid=], `tss:timeBase` and `tss:timeStep` do not change, so new rows continue the steps of the grid.
+The time of a new row MUST lie in the [=Time Window=] of the source. On a [=Time Grid=], `tss:timeBase` and `tss:timeStep` do not change, so new rows continue the steps of the grid. Without a [=Step Field=], a new row is at the step of its position, so a writer appends a row for every step, with empty values for a step without readings.
 
 ## Ending a growing source ## {#ending}
 
@@ -1127,8 +1162,8 @@ The RDF Message Log of a growing `tss:EmbeddedRDFSource`, and the data file of a
 </thead>
 <tbody>
 <tr><td><code>tss:EmbeddedRDFSource</code></td><td>an RDF Message [[RDF-MESSAGES]]</td><td>a message delimiter follows it</td><td>the version label, the prefixes and the base IRI that are in force at the end of the last complete message</td></tr>
-<tr><td><code>tss:CSVSource</code></td><td>a CSV record [[RFC4180]]</td><td>the line break that ends it follows; a line break inside a quoted cell does not end a record</td><td>the header line, and so the columns of the fields</td></tr>
-<tr><td><code>tss:ArrowSource</code></td><td>an encapsulated message of the IPC streaming format [[ARROW-IPC]]</td><td>all its bytes are there: the continuation marker, the length of its metadata, the metadata, and a body of the length that the metadata states</td><td>the schema, and the dictionaries so far</td></tr>
+<tr><td><code>tss:CSVSource</code></td><td>a CSV record [[RFC4180]]</td><td>the line break that ends it follows; a line break inside a quoted cell does not end a record</td><td>the header line, and so the columns of the fields; on a [=Time Grid=] without a [=Step Field=], the number of rows read</td></tr>
+<tr><td><code>tss:ArrowSource</code></td><td>an encapsulated message of the IPC streaming format [[ARROW-IPC]]</td><td>all its bytes are there: the continuation marker, the length of its metadata, the metadata, and a body of the length that the metadata states</td><td>the schema, and the dictionaries so far; on a [=Time Grid=] without a [=Step Field=], the number of rows read</td></tr>
 </tbody>
 </table>
 

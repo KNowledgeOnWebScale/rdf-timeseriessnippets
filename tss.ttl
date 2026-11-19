@@ -178,7 +178,7 @@ tss:hasField a owl:ObjectProperty ;
 
 tss:timeField a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "time field"@en ;
-    rdfs:comment "The field of the source that holds the time of each reading. Its values are times of the source, so its tss:datatype is xsd:dateTime (or xsd:dateTimeStamp), and every time has a timezone. In a source with a time grid the data file has no column for it: a row's time is computed from its step (tss:stepField)."@en ;
+    rdfs:comment "The field of the source that holds the time of each reading. Its values are times of the source, so its tss:datatype is xsd:dateTime (or xsd:dateTimeStamp), and every time has a timezone. In a source with a time grid the data file has no column for it: a row's time is computed from its step, given by tss:stepField or by the row's position in the data file."@en ;
     rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
@@ -267,7 +267,7 @@ tss:timeStep a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:stepField a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "step field"@en ;
-    rdfs:comment "The field of a source with a time grid whose column holds the step of each row: a whole number, 0 or more, and no two rows at the same step. A row's time is tss:timeBase + its step × tss:timeStep, so the data file has no column for the tss:timeField. The step field is one of the source's fields (tss:hasField), has tss:datatype xsd:integer and is not its tss:timeField. A source with a time grid states exactly one tss:stepField; a source without a time grid states none."@en ;
+    rdfs:comment "The field of a source with a time grid whose column holds the step of each row: a whole number, 0 or more, and no two rows at the same step. A row's time is tss:timeBase + its step × tss:timeStep, so the data file has no column for the tss:timeField. The step field is one of the source's fields (tss:hasField), has tss:datatype xsd:integer and is not its tss:timeField. A source with a time grid states at most one tss:stepField; without one, the step of a row is its position in the data file (the first row at step 0), so every step has a row. A source without a time grid states none."@en ;
     rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
