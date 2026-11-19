@@ -12,24 +12,24 @@
 @prefix sosa:    <http://www.w3.org/ns/sosa/> .
 @prefix qudt:    <http://qudt.org/schema/qudt/> .
 
-# The terms of the RDF Time Series Snippets vocabulary (tss:): the snippet and its five classes,
-# its fields, the summaries of their values, the points of an embedded snippet, and the values
+# The terms of the RDF Time Series Sources vocabulary (tss:): the source and its five classes,
+# its fields, the summaries of their values, the points of an embedded source, and the values
 # they take.
 #
-# "A time of the snippet" below is an xsd:dateTimeStamp literal: an xsd:dateTime whose timezone
+# "A time of the source" below is an xsd:dateTimeStamp literal: an xsd:dateTime whose timezone
 # (Z or an offset such as +02:00) cannot be left out. These are:
-#   on the snippet:   tss:from, tss:until, tss:timeBase
+#   on the source:   tss:from, tss:until, tss:timeBase
 #   on a summary:     tss:firstTime, tss:lastTime, tss:generatedAtTime
-#   on a point:       the value of the snippet's tss:timeField
+#   on a point:       the value of the source's tss:timeField
 
 <https://w3id.org/tss#> a owl:Ontology ;
-    dcterms:title "RDF Time Series Snippets"@en ;
-    dcterms:description "Vocabulary for describing time series snippets in RDF: a snippet, its fields and how to read their values, the summaries of those values, and the points of a snippet whose readings are embedded in its metadata."@en ;
+    dcterms:title "RDF Time Series Sources"@en ;
+    dcterms:description "Vocabulary for describing time series sources in RDF: a source, its fields and how to read their values, the summaries of those values, and the points of a source whose readings are embedded in its metadata."@en ;
     dcterms:modified "2026-11-18"^^xsd:date ;
     owl:versionInfo "0.3.0" ;
     owl:versionIRI <https://w3id.org/tss/0.3.0#> ;
-    rdfs:comment "This ontology lists the terms of the RDF Time Series Snippets specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
-    rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/> ;
+    rdfs:comment "This ontology lists the terms of the RDF Time Series Sources specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
+    rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-tss/> ;
     dcterms:contributor <https://pietercolpaert.be/#me>, <https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/> ;
     vann:preferredNamespacePrefix "tss" ;
     vann:preferredNamespaceUri "https://w3id.org/tss#" .
@@ -211,59 +211,59 @@ tss:observedMaximum a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:isDefinedBy <> ;
 .
 
-tss:Snippet a owl:Class ;
-    rdfs:label "Snippet"@en ;
-    rdfs:comment "A time series snippet: the readings of one or more time series in a time window, described by the snippet's fields. A snippet is an instance of exactly one of the five subclasses of tss:Snippet, which says where its readings are and how they are written: in the metadata itself (tss:EmbeddedJSONSnippet, tss:EmbeddedRDFSnippet) or in an external data file (tss:ParquetSnippet, tss:CSVSnippet, tss:ArrowSnippet). A metadata document describes one or more snippets, all embedded or all with an external data file, and each is read on its own."@en ;
+tss:Source a owl:Class ;
+    rdfs:label "Source"@en ;
+    rdfs:comment "A time series source: the readings of one or more time series in a time window, described by the source's fields. A source is an instance of exactly one of the five subclasses of tss:Source, which says where its readings are and how they are written: in the metadata itself (tss:EmbeddedJSONSource, tss:EmbeddedRDFSource) or in an external data file (tss:ParquetSource, tss:CSVSource, tss:ArrowSource). A metadata document describes one or more sources, all embedded or all with an external data file, and each is read on its own."@en ;
     rdfs:subClassOf dcat:Dataset ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:EmbeddedJSONSnippet a owl:Class ;
-    rdfs:label "Embedded JSON snippet"@en ;
-    rdfs:comment "A snippet whose readings are in the metadata itself, as JSON: one rdf:JSON literal, tss:points, holds a JSON array with one object per reading, keyed by the tss:columnName of the snippet's fields."@en ;
-    rdfs:subClassOf tss:Snippet ;
+tss:EmbeddedJSONSource a owl:Class ;
+    rdfs:label "Embedded JSON source"@en ;
+    rdfs:comment "A source whose readings are in the metadata itself, as JSON: one rdf:JSON literal, tss:points, holds a JSON array with one object per reading, keyed by the tss:columnName of the source's fields."@en ;
+    rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:EmbeddedRDFSnippet a owl:Class ;
-    rdfs:label "Embedded RDF snippet"@en ;
-    rdfs:comment "A snippet whose readings are in the metadata itself, as RDF: each reading is a node (tss:Point) that the snippet links to with tss:hasPoint, in a statement of its own, with one triple per value: the predicate is the IRI of the field, so its fields need no tss:columnName. The metadata document of a growing snippet of this class is an RDF Message Log, to which each new reading is appended as a message."@en ;
-    rdfs:subClassOf tss:Snippet ;
+tss:EmbeddedRDFSource a owl:Class ;
+    rdfs:label "Embedded RDF source"@en ;
+    rdfs:comment "A source whose readings are in the metadata itself, as RDF: each reading is a node (tss:Point) that the source links to with tss:hasPoint, in a statement of its own, with one triple per value: the predicate is the IRI of the field, so its fields need no tss:columnName. The metadata document of a growing source of this class is an RDF Message Log, to which each new reading is appended as a message."@en ;
+    rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:ParquetSnippet a owl:Class ;
-    rdfs:label "Parquet snippet"@en ;
-    rdfs:comment "A snippet whose readings are the rows of an external Apache Parquet data file (tss:dataFile). A Parquet file cannot be appended to, so a Parquet snippet always states tss:immutable true."@en ;
-    rdfs:subClassOf tss:Snippet ;
+tss:ParquetSource a owl:Class ;
+    rdfs:label "Parquet source"@en ;
+    rdfs:comment "A source whose readings are the rows of an external Apache Parquet data file (tss:dataFile). A Parquet file cannot be appended to, so a Parquet source always states tss:immutable true."@en ;
+    rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:CSVSnippet a owl:Class ;
-    rdfs:label "CSV snippet"@en ;
-    rdfs:comment "A snippet whose readings are the rows of an external CSV data file (tss:dataFile). tss:delimiter, tss:encoding and tss:header describe how the file is written."@en ;
-    rdfs:subClassOf tss:Snippet ;
+tss:CSVSource a owl:Class ;
+    rdfs:label "CSV source"@en ;
+    rdfs:comment "A source whose readings are the rows of an external CSV data file (tss:dataFile). tss:delimiter, tss:encoding and tss:header describe how the file is written."@en ;
+    rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:ArrowSnippet a owl:Class ;
-    rdfs:label "Arrow snippet"@en ;
-    rdfs:comment "A snippet whose readings are the rows of an external Apache Arrow data file (tss:dataFile), in the Arrow IPC streaming format or in the Arrow IPC file format. A growing Arrow snippet uses the streaming format, to which record batches can be appended; a snippet in the file format always states tss:immutable true."@en ;
-    rdfs:subClassOf tss:Snippet ;
+tss:ArrowSource a owl:Class ;
+    rdfs:label "Arrow source"@en ;
+    rdfs:comment "A source whose readings are the rows of an external Apache Arrow data file (tss:dataFile), in the Arrow IPC streaming format or in the Arrow IPC file format. A growing Arrow source uses the streaming format, to which record batches can be appended; a source in the file format always states tss:immutable true."@en ;
+    rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 [] a owl:AllDisjointClasses ;
-    owl:members ( tss:EmbeddedJSONSnippet tss:EmbeddedRDFSnippet tss:ParquetSnippet tss:CSVSnippet tss:ArrowSnippet ) .
+    owl:members ( tss:EmbeddedJSONSource tss:EmbeddedRDFSource tss:ParquetSource tss:CSVSource tss:ArrowSource ) .
 
 tss:Field a owl:Class ;
     rdfs:label "Field"@en ;
-    rdfs:comment "A field of a snippet: one column of its readings, such as the time or one series of values. It says where its values are (tss:columnName, tss:columnIndex) and how to read them (tss:datatype). In the RDF points of a tss:EmbeddedRDFSnippet, the field's IRI is the predicate of its values, so it needs no column name."@en ;
+    rdfs:comment "A field of a source: one column of its readings, such as the time or one series of values. It says where its values are (tss:columnName, tss:columnIndex) and how to read them (tss:datatype). In the RDF points of a tss:EmbeddedRDFSource, the field's IRI is the predicate of its values, so it needs no column name."@en ;
     skos:closeMatch csvw:Column ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:Point a owl:Class ;
     rdfs:label "Point"@en ;
-    rdfs:comment "One reading of a tss:EmbeddedRDFSnippet: a node that the snippet links to with tss:hasPoint. It is not typed: its type follows from tss:hasPoint. Each of its values is a triple with the field's IRI as predicate and a literal of the field's tss:datatype; a missing value has no triple, and a value with the empty text \"\" is no value either. The points of a snippet are unordered."@en ;
+    rdfs:comment "One reading of a tss:EmbeddedRDFSource: a node that the source links to with tss:hasPoint. It is not typed: its type follows from tss:hasPoint. Each of its values is a triple with the field's IRI as predicate and a literal of the field's tss:datatype; a missing value has no triple, and a value with the empty text \"\" is no value either. The points of a source are unordered."@en ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:Summary a owl:Class ;
     rdfs:label "Summary"@en ;
-    rdfs:comment "Statistics of the values of one field in the time window of its snippet, calculated from the readings. A summary has no window of its own. Every attribute of a summary is optional."@en ;
+    rdfs:comment "Statistics of the values of one field in the time window of its source, calculated from the readings. A summary has no window of its own. Every attribute of a summary is optional."@en ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:MissingValuePolicy a owl:Class ;
@@ -288,148 +288,148 @@ tss:ExcludeEmptyValues a tss:MissingValuePolicy ;
 
 tss:DeltaFromBaseline a tss:ValueEncoding ;
     rdfs:label "Delta from baseline"@en ;
-    rdfs:comment "Each value of the field in the snippet's data file is the difference from the field's tss:baseline: the reading is tss:baseline + the stated value, summed exactly on the decimal values of the two literals and then read as the field's tss:datatype. The field's tss:minimum, tss:maximum and tss:summary describe the readings, not the differences."@en ;
+    rdfs:comment "Each value of the field in the source's data file is the difference from the field's tss:baseline: the reading is tss:baseline + the stated value, summed exactly on the decimal values of the two literals and then read as the field's tss:datatype. The field's tss:minimum, tss:maximum and tss:summary describe the readings, not the differences."@en ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 
 #################################################################
-#    Properties of a snippet
+#    Properties of a source
 #################################################################
 
 tss:from a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "from"@en ;
-    rdfs:comment "The start of the snippet's time window, included: the window its readings cover. A summary has no window of its own: it covers the snippet's window. A time of the snippet."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The start of the source's time window, included: the window its readings cover. A summary has no window of its own: it covers the source's window. A time of the source."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:until a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "until"@en ;
-    rdfs:comment "The end of the snippet's time window, not included; it comes after tss:from. A time of the snippet."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The end of the source's time window, not included; it comes after tss:from. A time of the source."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:immutable a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "immutable"@en ;
-    rdfs:comment "true when the snippet is final: no reading is added, changed or removed, and its description does not change any more. false, or not stated, when the snippet is growing: it is append-only, so readings may be added, but none is changed or removed, and its description does not change. A snippet that states true never becomes growing again. A tss:ParquetSnippet, and a tss:ArrowSnippet whose data file is in the Arrow IPC file format, always state true. Named after ldes:immutable."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "true when the source is final: no reading is added, changed or removed, and its description does not change any more. false, or not stated, when the source is growing: it is append-only, so readings may be added, but none is changed or removed, and its description does not change. A source that states true never becomes growing again. A tss:ParquetSource, and a tss:ArrowSource whose data file is in the Arrow IPC file format, always state true. Named after ldes:immutable."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:boolean ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:producedBy a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "produced by"@en ;
-    rdfs:comment "The system that produced the readings of the snippet."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The system that produced the readings of the source."@en ;
+    rdfs:domain tss:Source ;
     rdfs:subPropertyOf prov:wasAttributedTo ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:snippetDescription a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:label "snippet description"@en ;
-    rdfs:comment "A node that describes the snippet with any RDF vocabulary and properties."@en ;
-    rdfs:domain tss:Snippet ;
+tss:sourceDescription a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:label "source description"@en ;
+    rdfs:comment "A node that describes the source with any RDF vocabulary and properties."@en ;
+    rdfs:domain tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:hasField a owl:ObjectProperty ;
     rdfs:label "has field"@en ;
-    rdfs:comment "A field of the snippet. Every field is a field of exactly one snippet."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "A field of the source. Every field is a field of exactly one source."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:timeField a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "time field"@en ;
-    rdfs:comment "The field of the snippet that holds the time of each reading. Its values are times of the snippet, so its tss:datatype is xsd:dateTimeStamp: every time has a timezone. In a snippet with a time grid the data file has no column for it: a row's time is computed from its step (tss:stepField)."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The field of the source that holds the time of each reading. Its values are times of the source, so its tss:datatype is xsd:dateTimeStamp: every time has a timezone. In a source with a time grid the data file has no column for it: a row's time is computed from its step (tss:stepField)."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:key a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "key"@en ;
-    rdfs:comment "The field of the snippet whose values identify a reading: always its tss:timeField. A snippet states at most one tss:key, and it is the time field; a snippet without tss:key has its time field as key too. No two readings have the same time; two times that are the same moment are the same time."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The field of the source whose values identify a reading: always its tss:timeField. A source states at most one tss:key, and it is the time field; a source without tss:key has its time field as key too. No two readings have the same time; two times that are the same moment are the same time."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 
 #################################################################
-#    Properties of an embedded snippet
+#    Properties of an embedded source
 #################################################################
 
 tss:hasPoint a owl:ObjectProperty ;
     rdfs:label "has point"@en ;
-    rdfs:comment "A point of a tss:EmbeddedRDFSnippet: one reading in the metadata itself. Each of the point's values is a triple with the point as subject and the field's IRI as predicate. Every point is a point of exactly one snippet, and every object of tss:hasPoint is a point. Other snippets have no tss:hasPoint: the readings of a tss:EmbeddedJSONSnippet are in tss:points, and those of a snippet with an external data file are the rows of the file."@en ;
-    rdfs:domain tss:EmbeddedRDFSnippet ;
+    rdfs:comment "A point of a tss:EmbeddedRDFSource: one reading in the metadata itself. Each of the point's values is a triple with the point as subject and the field's IRI as predicate. Every point is a point of exactly one source, and every object of tss:hasPoint is a point. Other sources have no tss:hasPoint: the readings of a tss:EmbeddedJSONSource are in tss:points, and those of a source with an external data file are the rows of the file."@en ;
+    rdfs:domain tss:EmbeddedRDFSource ;
     rdfs:range tss:Point ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:points a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "points"@en ;
-    rdfs:comment "The readings of a tss:EmbeddedJSONSnippet: one rdf:JSON literal whose value is a JSON array with one JSON object per reading. The keys of an object are the tss:columnName of the snippet's fields, and each value should be a JSON string that holds the lexical form of its field's tss:datatype. A missing key, null and the empty string \"\" are no value. No key starts with @. The objects are unordered, and \"[]\" holds no readings."@en ;
-    rdfs:domain tss:EmbeddedJSONSnippet ;
+    rdfs:comment "The readings of a tss:EmbeddedJSONSource: one rdf:JSON literal whose value is a JSON array with one JSON object per reading. The keys of an object are the tss:columnName of the source's fields, and each value should be a JSON string that holds the lexical form of its field's tss:datatype. A missing key, null and the empty string \"\" are no value. No key starts with @. The objects are unordered, and \"[]\" holds no readings."@en ;
+    rdfs:domain tss:EmbeddedJSONSource ;
     rdfs:range rdf:JSON ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 
 #################################################################
-#    Properties of a snippet with an external data file
+#    Properties of a source with an external data file
 #################################################################
 
 tss:dataFile a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "data file"@en ;
-    rdfs:comment "The external data file that holds the readings of a tss:ParquetSnippet, tss:CSVSnippet or tss:ArrowSnippet; the class of the snippet says how to read it. A relative IRI is resolved against the metadata document."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The external data file that holds the readings of a tss:ParquetSource, tss:CSVSource or tss:ArrowSource; the class of the source says how to read it. A relative IRI is resolved against the metadata document."@en ;
+    rdfs:domain tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:delimiter a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "delimiter"@en ;
-    rdfs:comment "The one character that separates the columns of the data file of a tss:CSVSnippet; \",\" when not stated."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The one character that separates the columns of the data file of a tss:CSVSource; \",\" when not stated."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:string ;
     skos:closeMatch csvw:delimiter ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:encoding a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "encoding"@en ;
-    rdfs:comment "The character encoding of the data file of a tss:CSVSnippet; \"utf-8\" when not stated."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The character encoding of the data file of a tss:CSVSource; \"utf-8\" when not stated."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:string ;
     skos:closeMatch csvw:encoding ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:header a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "header"@en ;
-    rdfs:comment "true when the first row of the data file of a tss:CSVSnippet holds the column names; true when not stated."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "true when the first row of the data file of a tss:CSVSource holds the column names; true when not stated."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:boolean ;
     skos:closeMatch csvw:header ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 
 #################################################################
-#    The time grid of a snippet with an external data file
+#    The time grid of a source with an external data file
 #################################################################
 
 tss:timeBase a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time base"@en ;
-    rdfs:comment "The time of step 0 of the snippet's time grid: step n is at tss:timeBase + n × tss:timeStep. A time of the snippet. It anchors the grid and is not a bound of the time window, so it stays the same when tss:from or tss:until change. Only a snippet with an external data file (a tss:ParquetSnippet, tss:CSVSnippet or tss:ArrowSnippet) has a time grid; it states tss:timeBase and tss:timeStep together, or neither. The points of an embedded snippet state their own time."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The time of step 0 of the source's time grid: step n is at tss:timeBase + n × tss:timeStep. A time of the source. It anchors the grid and is not a bound of the time window, so it stays the same when tss:from or tss:until change. Only a source with an external data file (a tss:ParquetSource, tss:CSVSource or tss:ArrowSource) has a time grid; it states tss:timeBase and tss:timeStep together, or neither. The points of an embedded source state their own time."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:timeStep a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time step"@en ;
-    rdfs:comment "The time between two steps of the snippet's time grid: a duration of more than zero, such as PT15M or P1M. Step n is at tss:timeBase + n × tss:timeStep: each part of the step (years, months, days, hours, minutes, seconds) is multiplied by n, and the result is added to tss:timeBase as XML Schema adds a duration to an xsd:dateTime. With years or months the steps are calendar steps, not equal lengths of time: a month has 28 to 31 days, and a day past the end of a month becomes its last day (2021-01-31 + P1M is 2021-02-28). Only a snippet with an external data file (a tss:ParquetSnippet, tss:CSVSnippet or tss:ArrowSnippet) has a time grid; it states tss:timeBase and tss:timeStep together, or neither."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The time between two steps of the source's time grid: a duration of more than zero, such as PT15M or P1M. Step n is at tss:timeBase + n × tss:timeStep: each part of the step (years, months, days, hours, minutes, seconds) is multiplied by n, and the result is added to tss:timeBase as XML Schema adds a duration to an xsd:dateTime. With years or months the steps are calendar steps, not equal lengths of time: a month has 28 to 31 days, and a day past the end of a month becomes its last day (2021-01-31 + P1M is 2021-02-28). Only a source with an external data file (a tss:ParquetSource, tss:CSVSource or tss:ArrowSource) has a time grid; it states tss:timeBase and tss:timeStep together, or neither."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range xsd:duration ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:stepField a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "step field"@en ;
-    rdfs:comment "The field of a snippet with a time grid whose column holds the step of each row: a whole number, 0 or more, and no two rows at the same step. A row's time is tss:timeBase + its step × tss:timeStep, so the data file has no column for the tss:timeField. The step field is one of the snippet's fields (tss:hasField), has tss:datatype xsd:integer and is not its tss:timeField. A snippet with a time grid states exactly one tss:stepField; a snippet without a time grid states none."@en ;
-    rdfs:domain tss:Snippet ;
+    rdfs:comment "The field of a source with a time grid whose column holds the step of each row: a whole number, 0 or more, and no two rows at the same step. A row's time is tss:timeBase + its step × tss:timeStep, so the data file has no column for the tss:timeField. The step field is one of the source's fields (tss:hasField), has tss:datatype xsd:integer and is not its tss:timeField. A source with a time grid states exactly one tss:stepField; a source without a time grid states none."@en ;
+    rdfs:domain tss:Source ;
     rdfs:range tss:Field ;
     rdfs:subPropertyOf tss:hasField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -441,7 +441,7 @@ tss:stepField a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:columnName a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "column name"@en ;
-    rdfs:comment "The name of the field's column in a data file, or its key in the JSON points of a tss:EmbeddedJSONSnippet; unique within its snippet. Required for a field of an external snippet (except the time field of a snippet with a time grid) and of a tss:EmbeddedJSONSnippet; optional for a field of a tss:EmbeddedRDFSnippet, whose values are named by the field's IRI."@en ;
+    rdfs:comment "The name of the field's column in a data file, or its key in the JSON points of a tss:EmbeddedJSONSource; unique within its source. Required for a field of an external source (except the time field of a source with a time grid) and of a tss:EmbeddedJSONSource; optional for a field of a tss:EmbeddedRDFSource, whose values are named by the field's IRI."@en ;
     rdfs:domain tss:Field ;
     rdfs:range xsd:string ;
     skos:closeMatch csvw:name ;
@@ -449,14 +449,14 @@ tss:columnName a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:columnIndex a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "column index"@en ;
-    rdfs:comment "The position of the field's column, unique within its snippet: a whole number, and the first column is 0. Optional when tss:columnName identifies the column."@en ;
+    rdfs:comment "The position of the field's column, unique within its source: a whole number, and the first column is 0. Optional when tss:columnName identifies the column."@en ;
     rdfs:domain tss:Field ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:datatype a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "datatype"@en ;
-    rdfs:comment "The datatype that reads the field's values. In a tss:EmbeddedRDFSnippet, every value of the field is a literal of this datatype. In the JSON points of a tss:EmbeddedJSONSnippet and in a data file, it interprets the text of each value; a data file keeps its native types."@en ;
+    rdfs:comment "The datatype that reads the field's values. In a tss:EmbeddedRDFSource, every value of the field is a literal of this datatype. In the JSON points of a tss:EmbeddedJSONSource and in a data file, it interprets the text of each value; a data file keeps its native types."@en ;
     rdfs:domain tss:Field ;
     rdfs:range rdfs:Datatype ;
     skos:closeMatch csvw:datatype ;
@@ -519,21 +519,21 @@ tss:fieldDescription a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:describesField a owl:ObjectProperty ;
     rdfs:label "describes field"@en ;
-    rdfs:comment "Another field of the same snippet that this field's values are about: in each reading, this field's value describes that field's value."@en ;
+    rdfs:comment "Another field of the same source that this field's values are about: in each reading, this field's value describes that field's value."@en ;
     rdfs:domain tss:Field ;
     rdfs:range tss:Field ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:summary a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "summary"@en ;
-    rdfs:comment "The summary of the field's values. Only a field of an immutable snippet has one."@en ;
+    rdfs:comment "The summary of the field's values. Only a field of an immutable source has one."@en ;
     rdfs:domain tss:Field ;
     rdfs:range tss:Summary ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:valueEncoding a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "value encoding"@en ;
-    rdfs:comment "How the field's values are stated in the snippet's data file when they are not the readings themselves. Only a field of a snippet with an external data file (a tss:ParquetSnippet, tss:CSVSnippet or tss:ArrowSnippet) has one; the points of an embedded snippet state the readings themselves. A field without a tss:valueEncoding states its readings. The time field has none."@en ;
+    rdfs:comment "How the field's values are stated in the source's data file when they are not the readings themselves. Only a field of a source with an external data file (a tss:ParquetSource, tss:CSVSource or tss:ArrowSource) has one; the points of an embedded source state the readings themselves. A field without a tss:valueEncoding states its readings. The time field has none."@en ;
     rdfs:domain tss:Field ;
     rdfs:range tss:ValueEncoding ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -559,63 +559,63 @@ tss:missingValuePolicy a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:count a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "count"@en ;
-    rdfs:comment "How many values the field has in the snippet's time window: a whole number, 0 or more."@en ;
+    rdfs:comment "How many values the field has in the source's time window: a whole number, 0 or more."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:missing a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "missing"@en ;
-    rdfs:comment "How many readings in the snippet's time window have an empty value for the field: a whole number, 0 or more. Readings that do not exist (time gaps) are not counted."@en ;
+    rdfs:comment "How many readings in the source's time window have an empty value for the field: a whole number, 0 or more. Readings that do not exist (time gaps) are not counted."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:firstTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "first time"@en ;
-    rdfs:comment "The time of the first reading in the snippet's time window with a value for the field. A time of the snippet."@en ;
+    rdfs:comment "The time of the first reading in the source's time window with a value for the field. A time of the source."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:lastTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "last time"@en ;
-    rdfs:comment "The time of the last reading in the snippet's time window with a value for the field. A time of the snippet."@en ;
+    rdfs:comment "The time of the last reading in the source's time window with a value for the field. A time of the source."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:observedMinimum a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "observed minimum"@en ;
-    rdfs:comment "The smallest value of the field in the snippet's time window: a number. It does not replace the expected tss:minimum."@en ;
+    rdfs:comment "The smallest value of the field in the source's time window: a number. It does not replace the expected tss:minimum."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:observedMaximum a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "observed maximum"@en ;
-    rdfs:comment "The largest value of the field in the snippet's time window: a number. It does not replace the expected tss:maximum."@en ;
+    rdfs:comment "The largest value of the field in the source's time window: a number. It does not replace the expected tss:maximum."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:mean a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "mean"@en ;
-    rdfs:comment "The unweighted arithmetic mean of the field's values in the snippet's time window: a number."@en ;
+    rdfs:comment "The unweighted arithmetic mean of the field's values in the source's time window: a number."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:median a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "median"@en ;
-    rdfs:comment "The median of the field's values in the snippet's time window: a number. For an even number of values, the mean of the middle two."@en ;
+    rdfs:comment "The median of the field's values in the source's time window: a number. For an even number of values, the mean of the middle two."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:generatedAtTime a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "generated at time"@en ;
-    rdfs:comment "When the summary was calculated. A time of the snippet. Only an immutable snippet has summaries: they are computed once, from its final readings."@en ;
+    rdfs:comment "When the summary was calculated. A time of the source. Only an immutable source has summaries: they are computed once, from its final readings."@en ;
     rdfs:domain tss:Summary ;
     rdfs:range xsd:dateTimeStamp ;
     rdfs:subPropertyOf prov:generatedAtTime ;

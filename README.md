@@ -1,8 +1,8 @@
-# RDF Time Series Snippets
+# RDF Time Series Sources
 
-RDF Time Series Snippets is a way to describe snippets of time series using CDT literals for the data points
+RDF Time Series Sources (RDF-TSS) describes how to connect an RDF knowledge graph to time series: the readings stay compact, in the metadata or in an external CSV, Parquet or Arrow file, and RDF describes where they are and what they mean.
 
-[Read the spec](https://knowledgeonwebscale.github.io/rdf-timeseriessnippets/)
+[Read the spec](https://knowledgeonwebscale.github.io/rdf-tss/)
 
 ## Developing
 
