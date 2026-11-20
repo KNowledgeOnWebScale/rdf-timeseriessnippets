@@ -13,6 +13,23 @@ Markup Shorthands: markdown yes, css no
 Boilerplate: conformance no
 </pre>
 
+<pre class="biblio">
+{
+  "RDF-MESSAGES": {
+    "authors": ["Pieter Colpaert", "Piotr Sowiński"],
+    "href": "https://w3c-cg.github.io/rsp/spec/messages",
+    "title": "RDF Messages",
+    "status": "Draft Community Group Report",
+    "publisher": "W3C RDF Stream Processing Community Group"
+  },
+  "ARROW-IPC": {
+    "href": "https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc",
+    "title": "Apache Arrow Columnar Format: Serialization and Interprocess Communication (IPC)",
+    "publisher": "The Apache Software Foundation"
+  }
+}
+</pre>
+
 # Introduction # {#intro}
 
 Sensor observations, positioning data, measurements, mobility information... are commonly published as time series: a timestamp with one or more values.
@@ -24,7 +41,7 @@ With RDF Time Series Snippets, a publisher keeps the readings compact and descri
 - Each field states the datatype of its values and, for a data file or JSON points, its column name; optionally, it states what they observe, in which unit, with which sensor, of which feature of interest. In RDF points, the IRI of the field names its values, so it needs no column name.
 - A data file can give the time of each row as a step on a regular [=Time Grid=], and state the values of a field as differences from a baseline (`tss:valueEncoding`).
 
-The metadata also states the [=Time Window=] of the readings, whether readings may still be added, when the snippet and its data were last checked to be up to date, and an optional [=Stored Summary=] of each field.
+The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a snippet to which readings are still added, and only fetch the new readings with HTTP Range requests ([[#following]]).
 
 ## Namespaces ## {#namespaces}
 
@@ -36,23 +53,22 @@ RDF Time Series Snippets use the following prefix and namespace:
 
 ## Embedded example ## {#embedded-example}
 
-This example is a complete [=Embedded Snippet=]: five conductivity readings of one sensor, embedded in the metadata as RDF points.
+This example is a complete [=Embedded Snippet=]: five conductivity readings of one sensor, embedded in the metadata as RDF points. Readings may still be added to it: it does not state `tss:immutable true`. It is therefore written as an RDF Message Log [[RDF-MESSAGES]]: the first message describes the snippet and its fields, and each next message holds one point. A writer adds a point by appending one message ([[#updating]]), and a consumer that follows the snippet only fetches the messages it has not read yet ([[#following]]).
 
 <div class="example" id="example-embedded-snippet">
 ```turtle
-@prefix tss: <https://w3id.org/tss#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix quantitykind: <http://qudt.org/vocab/quantitykind/> .
-@prefix unit: <http://qudt.org/vocab/unit/> .
-@prefix ex: <https://example.org/ex#> .
+VERSION "1.2-messages"
+PREFIX tss: <https://w3id.org/tss#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX quantitykind: <http://qudt.org/vocab/quantitykind/>
+PREFIX unit: <http://qudt.org/vocab/unit/>
+PREFIX ex: <https://example.org/ex#>
 
 ex:snippet
     a tss:EmbeddedRDFSnippet ;
     rdfs:label "Conductivity readings"@en ;
-    tss:mutable true ;
-    tss:committedUntil "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp ;
     tss:producedBy ex:producer ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
@@ -76,35 +92,36 @@ ex:value-field
     tss:unit unit:MicroS-PER-CentiM ;
     tss:sensor ex:sensor-1 ;
     tss:featureOfInterest ex:feature-1 .
-
+MESSAGE
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4810.5"^^xsd:double
 ] .
-
+MESSAGE
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T08:15:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4722.4"^^xsd:double
 ] .
-
+MESSAGE
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T08:30:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4751.9"^^xsd:double
 ] .
-
+MESSAGE
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T09:15:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4719.3"^^xsd:double
 ] .
-
+MESSAGE
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T09:45:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4783.6"^^xsd:double
 ] .
+MESSAGE
 ```
 </div>
 
-The snippet is a `tss:EmbeddedRDFSnippet`: it links to each point with `tss:hasPoint`, one statement per point, and the IRIs of the fields are the predicates of the point's values, so the fields state no column name. Expanded into observations ([[#expanding]]), every value of a [=Measured Field=] becomes one observation, with a link back to the snippet, the time of its point and what its field says. Written with SOSA [[VOCAB-SSN]] and `dcterms:source` ([[#sosa-mapping]]), the first two observations are:
+The snippet is a `tss:EmbeddedRDFSnippet`: it links to each point with `tss:hasPoint`, one message per point, and the IRIs of the fields are the predicates of the point's values, so the fields state no column name. Every message ends with the delimiter `MESSAGE`, so a consumer knows that the last message it read is complete. Expanded into observations ([[#expanding]]), every value of a [=Measured Field=] becomes one observation, with a link back to the snippet, the time of its point and what its field says. Written with SOSA [[VOCAB-SSN]] and `dcterms:source` ([[#sosa-mapping]]), the first two observations are:
 
 <div class="example" id="example-observations">
 ```turtle
@@ -170,6 +187,8 @@ A <dfn>Describing Field</dfn> says something about the values of another field (
 
 A <dfn>Stored Summary</dfn> holds numbers computed from the values of one field, such as their count and mean (`tss:summary`).
 
+A <dfn>Growing Snippet</dfn> is a snippet that does not state `tss:immutable true`: points may still be added to it ([[#change]]).
+
 A <dfn>Write</dfn> is a change to the points of a snippet: adding a point, since points are never changed or removed ([[#change]]).
 
 # The snippet # {#the-snippet}
@@ -181,8 +200,7 @@ A metadata document MUST describe at least one snippet. Each snippet in the docu
 <tr><th>Property</th><th>Value</th><th>External snippet</th><th>Embedded snippet</th></tr>
 </thead>
 <tbody>
-<tr><td><code>tss:mutable</code></td><td><code>xsd:boolean</code></td><td>required</td><td>required</td></tr>
-<tr><td><code>tss:committedUntil</code></td><td>a time ([[#times]])</td><td>required</td><td>required</td></tr>
+<tr><td><code>tss:immutable</code></td><td><code>xsd:boolean</code></td><td>optional; default <code>false</code>; required with value <code>true</code> for a <code>tss:ParquetSnippet</code> and for a <code>tss:ArrowSnippet</code> in the Arrow IPC file format</td><td>optional; default <code>false</code></td></tr>
 <tr><td><code>tss:hasField</code></td><td>a <code>tss:Field</code></td><td>required, one or more</td><td>required, one or more</td></tr>
 <tr><td><code>tss:timeField</code></td><td>one of its fields</td><td>required</td><td>required</td></tr>
 <tr><td><code>tss:key</code></td><td>its time field</td><td>optional; default: the time field</td><td>optional; default: the time field</td></tr>
@@ -233,7 +251,7 @@ All snippets of a document MUST be embedded snippets, or all MUST be external sn
 
 A time of a snippet is a date and a time of day with a timezone, such as `"2024-05-12T08:00:00Z"`: an `xsd:dateTimeStamp` [[XMLSCHEMA11-2]], an `xsd:dateTime` whose timezone cannot be left out. The times of a snippet are:
 
-- on the snippet: `tss:committedUntil`, `tss:from`, `tss:until` and `tss:timeBase`;
+- on the snippet: `tss:from`, `tss:until` and `tss:timeBase`;
 - on a [=Stored Summary=]: `tss:firstTime`, `tss:lastTime` and `tss:generatedAtTime`;
 - in each point: its value for the [=Time Field=].
 
@@ -251,16 +269,24 @@ Note: The key has one field because a [=Field=] identifies its series: the senso
 
 `tss:from` and `tss:until` state the [=Time Window=] of the snippet: the readings lie in [`tss:from`, `tss:until`), so a point at exactly `tss:until` is not in the window. Both are times of the snippet ([[#times]]), and `tss:until` MUST come after `tss:from`. The time of every point of an embedded snippet MUST lie in the window. Consumers of an external snippet use only the rows inside the window: the data file may hold more.
 
-Note: The window does not have to be tight: `tss:until` may lie after the newest point, as in <a href="#example-embedded-snippet">the embedded example</a>.
+Note: The window does not have to be tight: `tss:until` may lie after the newest point, as in <a href="#example-embedded-snippet">the embedded example</a>. The window of a [=Growing Snippet=] does not change ([[#change]]), so it is set to cover the readings that will still be added, such as a whole day, or left open.
 
 ## Changes ## {#change}
 
-- `tss:mutable` says whether readings may still be added to the snippet. `false` means its data never changes: no point is added, changed or removed. `true` means the snippet is append-only: points may be added ([[#updating]]), but no point is changed or removed.
-- `tss:committedUntil` is the last time the snippet and its data were checked to be up to date. Every [=Write=] MUST set it to the time of that write; a check that finds nothing new may move it forward too. It is not the time of a reading and no bound of the [=Time Window=]: it may lie after the newest point, and after `tss:until`.
+`tss:immutable` says whether readings may still be added to the snippet, as `ldes:immutable` does for a page of a Linked Data Event Stream:
 
-For example, when the newest point is a month old and `tss:committedUntil` is yesterday, the snippet and its data are up to date: no new readings came in between the newest point and yesterday.
+- `true` means the snippet is final: no point is added, changed or removed, and nothing in its description changes any more.
+- `false`, or no `tss:immutable`, means the snippet is a [=Growing Snippet=]: it is append-only. Points may be added ([[#updating]]), but no point is changed or removed.
 
-Each [=Stored Summary=] states when it was computed with its own `tss:generatedAtTime` ([[#summaries]]).
+A snippet that states `tss:immutable true` MUST NOT become a growing snippet again. A writer ends a growing snippet by adding `tss:immutable true` ([[#ending]]).
+
+While a snippet is growing, its description does not change: a [=Write=] only adds points. Its class, its fields, its [=Time Window=], its data file and its [=Time Grid=] MUST stay as they are. The only statements that are added to its description are `tss:immutable true` and the [=Stored Summaries=] of its fields, at the moment the writer ends the snippet ([[#ending]]). Every point that is added MUST lie in the time window: a writer that has readings outside of it starts a new snippet.
+
+A consumer learns that points were added by fetching the snippet again, and fetches only the new points with HTTP Range requests where the serialisation allows it ([[#following]]).
+
+Some data files cannot be appended to, so their snippets are always immutable: a `tss:ParquetSnippet` MUST state `tss:immutable true`, and so MUST a `tss:ArrowSnippet` whose data file is in the Arrow IPC file format ([[#arrow]]).
+
+Note: Earlier drafts stated `tss:mutable` and `tss:committedUntil`. `tss:mutable true` is now the default, `tss:mutable false` is `tss:immutable true`, and a consumer finds out whether a growing snippet changed with HTTP validators (`ETag`, `Last-Modified`) instead of `tss:committedUntil` ([[#following]]).
 
 ## Description and provenance ## {#provenance}
 
@@ -332,8 +358,7 @@ Several measured fields share one time field, each with its own property, unit a
 ex:weather-snippet
     a tss:EmbeddedRDFSnippet ;
     rdfs:label "Weather station readings"@en ;
-    tss:mutable false ;
-    tss:committedUntil "2024-05-12T09:00:00Z"^^xsd:dateTimeStamp ;
+    tss:immutable true ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     tss:until "2024-05-12T09:00:00Z"^^xsd:dateTimeStamp ;
     tss:timeField ex:weather-time-field ;
@@ -394,8 +419,7 @@ Two series in one embedded snippet: a value, and a status that describes it.
 ```turtle
 ex:two-series-snippet
     a tss:EmbeddedRDFSnippet ;
-    tss:mutable false ;
-    tss:committedUntil "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp ;
+    tss:immutable true ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
     tss:timeField ex:two-series-time-field ;
@@ -459,7 +483,9 @@ An [=Embedded Snippet=] keeps its points in the metadata. Its class says how the
 
 ## RDF points ## {#rdf-points}
 
-A `tss:EmbeddedRDFSnippet` keeps its points as RDF. The snippet links to each [=Point=] with `tss:hasPoint`, and a point is a point of exactly one snippet. Every node that a snippet links to with `tss:hasPoint` is a point: its type follows from that link, so a point states no `rdf:type`. It needs no identifier either, so it is usually a blank node, written as one statement at the end of the document, as in <a href="#example-embedded-snippet">the embedded example</a>. A [=Write=] then adds a point by appending one statement ([[#updating]]).
+A `tss:EmbeddedRDFSnippet` keeps its points as RDF. The snippet links to each [=Point=] with `tss:hasPoint`, and a point is a point of exactly one snippet. Every node that a snippet links to with `tss:hasPoint` is a point: its type follows from that link, so a point states no `rdf:type`. It needs no identifier either, so it is usually a blank node, written as one statement at the end of the document, as in <a href="#example-embedded-snippet">the embedded example</a>.
+
+The metadata document of a [=Growing Snippet=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the snippets and their fields, and every next message holds one or more points. A [=Write=] then adds a point by appending one message ([[#updating]]), and a consumer reads the new points without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two points are never the same node. A writer MUST end every message of the log of a growing snippet with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]].
 
 - Each value of a point is one triple: the point is the subject, the IRI of the field the predicate, and the object a literal with the field's `tss:datatype` ([[#datatypes]]).
 - The fields need no `tss:columnName`: the IRI of a field names its values. A field MAY state one, for example to name its column when the snippet is written to a data file; it has no effect on reading the RDF points.
@@ -487,8 +513,7 @@ The readings of <a href="#example-embedded-snippet">the embedded example</a> as 
 ```turtle
 ex:json-snippet
     a tss:EmbeddedJSONSnippet ;
-    tss:mutable true ;
-    tss:committedUntil "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp ;
+    tss:immutable false ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
     tss:timeField ex:json-time-field ;
@@ -536,8 +561,7 @@ An external snippet with a CSV file. It states its delimiter; the header line an
 ```turtle
 ex:csv-snippet
     a tss:CSVSnippet ;
-    tss:mutable false ;
-    tss:committedUntil "2024-06-01T00:05:00Z"^^xsd:dateTimeStamp ;
+    tss:immutable true ;
     tss:from "2024-05-01T00:00:00Z"^^xsd:dateTimeStamp ;
     tss:dataFile <https://example.org/data.csv> ;
     tss:delimiter ";" ;
@@ -571,8 +595,7 @@ An external snippet with a CSV file without a header line, and with an open time
 ```turtle
 ex:headerless-snippet
     a tss:CSVSnippet ;
-    tss:mutable true ;
-    tss:committedUntil "2024-06-01T00:05:00Z"^^xsd:dateTimeStamp ;
+    tss:immutable false ;
     tss:dataFile <data-no-header.csv> ;
     tss:header false ;
     tss:timeField ex:headerless-time-field ;
@@ -604,6 +627,8 @@ The data file, relative to the metadata document:
 
 The data file of a `tss:ParquetSnippet` is an [Apache Parquet](https://parquet.apache.org/docs/file-format/) file, read by its column names: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Parquet types in the file. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Parquet type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. A Parquet NULL is an [=Empty Value=]. A column of a Parquet type that is not in the table is not supported by this specification.
 
+A Parquet file ends with a footer that indexes its row groups, so rows cannot be appended to it. A `tss:ParquetSnippet` is therefore never a [=Growing Snippet=]: it MUST state `tss:immutable true`. A producer that keeps adding readings publishes a sequence of immutable Parquet snippets, or uses a CSV snippet or an Arrow snippet in the IPC streaming format for the newest readings.
+
 <table class="data">
 <thead>
 <tr><th>Parquet type</th><th>Lexical form</th><th>Allowed <code>tss:datatype</code></th></tr>
@@ -629,13 +654,21 @@ The class and the data file of a Parquet snippet:
 ```turtle
 ex:parquet-snippet
     a tss:ParquetSnippet ;
+    tss:immutable true ;
     tss:dataFile <https://example.org/data.parquet> .
 ```
 </div>
 
 ## Arrow ## {#arrow}
 
-The data file of a `tss:ArrowSnippet` is an Arrow file: the IPC file format of [Apache Arrow](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format). It is read by its column names, as a Parquet file is: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Arrow types in the file, and a dictionary-encoded column is read as the values it encodes. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Arrow type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. An Arrow null is an [=Empty Value=]. A column of an Arrow type that is not in the table is not supported by this specification.
+The data file of a `tss:ArrowSnippet` is written in one of the two IPC formats of Apache Arrow [[ARROW-IPC]]:
+
+- the [IPC streaming format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format): a schema message, followed by dictionary batches and record batches, and optionally an end-of-stream marker. A stream can be appended to, so it is the format of a [=Growing Snippet=]. Its media type is `application/vnd.apache.arrow.stream`, and its file extension is usually `.arrows`.
+- the [IPC file format](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format): the same messages between the magic string `ARROW1` at the start and a footer at the end that indexes the record batches. Every append would rewrite the footer, so a snippet in the file format MUST state `tss:immutable true`. Its media type is `application/vnd.apache.arrow.file`, and its file extension is usually `.arrow`.
+
+The data file of a growing `tss:ArrowSnippet` MUST be in the IPC streaming format. The data file of an immutable one MAY be in either format. A consumer tells them apart by the first bytes of the file, not by its extension or media type: a file in the IPC file format starts with the 6 bytes `ARROW1`, a stream starts with the continuation marker `0xFFFFFFFF`. A server SHOULD serve the data file with the media type of its format.
+
+The data file is read by its column names, as a Parquet file is: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Arrow types in the file, and a dictionary-encoded column is read as the values it encodes. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Arrow type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. An Arrow null is an [=Empty Value=]. A column of an Arrow type that is not in the table is not supported by this specification.
 
 <table class="data">
 <thead>
@@ -657,12 +690,17 @@ The data file of a `tss:ArrowSnippet` is an Arrow file: the IPC file format of [
 </table>
 
 <div class="example" id="example-arrow-snippet">
-The class and the data file of an Arrow snippet:
+The class and the data file of two Arrow snippets: an immutable one in the IPC file format, and a growing one in the IPC streaming format, to which record batches are still appended ([[#appending-data-files]]).
 
 ```turtle
 ex:arrow-snippet
     a tss:ArrowSnippet ;
+    tss:immutable true ;
     tss:dataFile <https://example.org/data.arrow> .
+
+ex:arrow-stream-snippet
+    a tss:ArrowSnippet ;
+    tss:dataFile <https://example.org/live.arrows> .
 ```
 </div>
 
@@ -691,8 +729,7 @@ The readings of <a href="#example-embedded-snippet">the embedded example</a> in 
 ```turtle
 ex:grid-snippet
     a tss:CSVSnippet ;
-    tss:mutable false ;
-    tss:committedUntil "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp ;
+    tss:immutable true ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTimeStamp ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTimeStamp ;
     tss:dataFile <https://example.org/grid.csv> ;
@@ -751,8 +788,7 @@ The first two readings of <a href="#example-embedded-snippet">the embedded examp
 ```turtle
 ex:delta-snippet
     a tss:CSVSnippet ;
-    tss:mutable false ;
-    tss:committedUntil "2024-05-12T09:46:10Z"^^xsd:dateTimeStamp ;
+    tss:immutable true ;
     tss:dataFile <https://example.org/delta.csv> ;
     tss:timeField ex:delta-time-field ;
     tss:key ex:delta-time-field ;
@@ -785,7 +821,9 @@ Their decoded values are 4750 + 60.5 = 4810.5 and 4750 + (-27.6) = 4722.4.
 
 # Stored summaries # {#summaries}
 
-A field MAY have one `tss:summary`: a node that holds numbers computed from the values of the field, such as how many values there are and their mean. A consumer can use them without reading the data. Every attribute of a summary is optional, and a summary may be empty.
+A field of an immutable snippet MAY have one `tss:summary`: a node that holds numbers computed from the values of the field, such as how many values there are and their mean. A consumer can use them without reading the data. Every attribute of a summary is optional, and a summary may be empty.
+
+A field of a [=Growing Snippet=] MUST NOT have a `tss:summary`: its numbers would be outdated by the next [=Write=], and the description of a growing snippet does not change ([[#change]]). A writer adds the summaries when it ends the snippet ([[#ending]]).
 
 The numbers of a summary cover the points in the [=Time Window=] of the snippet: from its `tss:from` (included) until its `tss:until` (not included), with an open side when the snippet leaves it open. A summary has no window of its own. They are computed from the [=Decoded Values=] of the field ([[#value-encoding]]).
 
@@ -812,7 +850,7 @@ The attributes of a summary:
 Only a numeric field ([[#datatypes]]) has `tss:observedMinimum`, `tss:observedMaximum`, `tss:mean` and `tss:median`. They include every value in the window, also values outside the expected range of the field: the observed minimum and maximum do not replace `tss:minimum` and `tss:maximum` ([[#meaning]]).
 
 <div class="example" id="example-summary">
-The summary of the value field of <a href="#example-embedded-snippet">the embedded example</a>:
+The summary of the value field of <a href="#example-embedded-snippet">the embedded example</a>, which the writer adds when it ends the snippet after its fifth point ([[#ending]]):
 
 ```turtle
 ex:value-field
@@ -851,7 +889,7 @@ ex:humidity-field
 ```
 </div>
 
-A summary is not refreshed by itself. Its `tss:generatedAtTime` says when it was computed, and a consumer can compute the same numbers from the data to check it. A [=Write=] that adds a point recomputes the summaries ([[#updating]]).
+A summary is computed once, from the final points of the snippet. Its `tss:generatedAtTime` says when it was computed, and a consumer can compute the same numbers from the data to check it.
 
 # Expanding a snippet into observations # {#expanding}
 
@@ -897,31 +935,119 @@ Note: The expansion does not keep every value: a field without `tss:observedProp
 </tbody>
 </table>
 
-# Adding points to a mutable snippet # {#updating}
+# Adding points to a growing snippet # {#updating}
 
-An [=Embedded Snippet=] with `tss:mutable true` is append-only: a [=Write=] adds points, and never changes or removes an existing point. A Write that adds one point:
+A [=Growing Snippet=] is append-only: points are added, and an existing point is never changed or removed. Every serialisation of its points only grows. A representation that a server returned, without content coding, MUST be a byte prefix of every later representation of the same resource in the same media type, as long as the resource is served at that IRI:
 
-1. Checks the new point: every value is in the lexical form of its field's datatype, and no other point has the same time (the [=Key=]).
-2. Adds the new point, and leaves the other points as they are. In a `tss:EmbeddedRDFSnippet`, it appends one statement that links the snippet to a new node with `tss:hasPoint`, with one triple for each of its values. In a `tss:EmbeddedJSONSnippet`, it writes a new `tss:points`: the existing points, unchanged, plus the new one as a JSON object whose values are JSON strings.
-3. Widens the [=Time Window=] when needed, so that the new point lies in it: `tss:from` becomes the earlier of `tss:from` and the time of the new point, and `tss:until` becomes a time after the time of the new point when it was not already. The writer chooses that time, and it MUST be after the time of the newest point, since `tss:until` is not in the window. A side that the snippet leaves open stays open.
-4. Sets `tss:committedUntil` to the time of the write.
-5. Recomputes every [=Stored Summary=] of the snippet from the points in the new window: its `tss:generatedAtTime` becomes the time of the write, and every number it states is computed again. Its `tss:missingValuePolicy` stays.
-6. Keeps the change only when the snippet still meets this specification.
+- the metadata document of a `tss:EmbeddedRDFSnippet`, an RDF Message Log ([[#rdf-points]]);
+- the data file of a `tss:CSVSnippet` ([[#appending-data-files]]);
+- the data file of a `tss:ArrowSnippet`, in the IPC streaming format ([[#arrow]]).
+
+The `tss:points` literal of a `tss:EmbeddedJSONSnippet` is rewritten on every [=Write=], so its document does not only grow; its points do ([[#updating-embedded]]). A producer that has to rewrite earlier bytes, for example to compact or correct the data, publishes the result as a new snippet, under a new IRI.
+
+## Embedded snippets ## {#updating-embedded}
+
+A [=Write=] that adds one point to a growing [=Embedded Snippet=]:
+
+1. Checks the new point: every value is in the lexical form of its field's datatype, no other point has the same time (the [=Key=]), and its time lies in the [=Time Window=] of the snippet.
+2. Adds the new point, and leaves everything else as it is. In a `tss:EmbeddedRDFSnippet`, it appends one RDF Message to the metadata document: one statement that links the snippet to a new node with `tss:hasPoint`, with one triple for each of its values, followed by a message delimiter. In a `tss:EmbeddedJSONSnippet`, it writes a new `tss:points`: the existing points, unchanged and in the same order, followed by the new one as a JSON object whose values are JSON strings.
+3. Keeps the change only when the snippet still meets this specification.
+
+A Write that adds several points at once does the same for each of them; in a `tss:EmbeddedRDFSnippet`, it MAY put them in one message. A Write changes nothing else: not the time window, and not the description of the snippet or its fields ([[#change]]).
 
 <div class="example" id="example-write">
-A new point for <a href="#example-embedded-snippet">the embedded example</a>:
+A new point for <a href="#example-embedded-snippet">the embedded example</a>, appended to its RDF Message Log:
 
 ```turtle
 ex:snippet tss:hasPoint [
     ex:time-field "2024-05-12T10:00:00Z"^^xsd:dateTimeStamp ;
     ex:value-field "4766.2"^^xsd:double
 ] .
+MESSAGE
 ```
 
-The write keeps the window, since the new point lies inside it, and sets `tss:committedUntil` to the time of the write, not to `2024-05-12T10:00:00Z`. In <a href="#example-json-points">the JSON points</a>, the same point is the object `{ "time": "2024-05-12T10:00:00Z", "value": "4766.2" }`, added to the array in `tss:points`.
+The new point lies in the window, which stays as it is. In <a href="#example-json-points">the JSON points</a>, the same point is the object `{ "time": "2024-05-12T10:00:00Z", "value": "4766.2" }`, added at the end of the array in `tss:points`.
 </div>
 
-An [=External Snippet=] is never changed this way: managing the data file of an external snippet is outside this specification. Its `tss:mutable` tells consumers whether rows may still be added to the file: with `true`, rows may be added, but no row is changed or removed.
+## Data files ## {#appending-data-files}
+
+The data file of a growing [=External Snippet=] only grows: rows are appended to it, and no row is changed or removed. How a producer writes to the file is outside this specification, but the file MUST meet these rules after every append, so a consumer can read the new rows on their own ([[#following]]):
+
+- **CSV:** a writer appends complete records only, and ends every record with a line break, so the file always ends with a line break. The header line and the earlier records MUST NOT change. A record that is not followed by a line break yet, is still being written. The data file of a growing CSV snippet SHOULD NOT be compressed as a whole, such as in a `.csv.gz` file, because then the new rows cannot be read on their own; a server MAY still compress it with an HTTP content coding.
+- **Arrow:** the data file is in the IPC streaming format ([[#arrow]]). A writer appends complete encapsulated messages only: record batches, and dictionary batches, including delta dictionary batches, when a dictionary-encoded column needs new values. The schema message at the start of the stream MUST NOT change. A writer MUST NOT write the end-of-stream marker while the snippet is growing.
+- **Parquet**, and Arrow in the IPC file format, cannot be appended to: such a snippet is never growing ([[#parquet]], [[#arrow]]).
+
+The time of a new row MUST lie in the [=Time Window=] of the snippet. On a [=Time Grid=], `tss:timeBase` and `tss:timeStep` do not change, so new rows continue the steps of the grid.
+
+## Ending a growing snippet ## {#ending}
+
+A writer ends a growing snippet when no point will be added to it any more. It then:
+
+1. Writes the last points: the data file of an external snippet holds all its rows before the next step.
+2. Adds `tss:immutable true` to the description of the snippet, and MAY add a [=Stored Summary=] to each field ([[#summaries]]). In the RDF Message Log of a `tss:EmbeddedRDFSnippet`, it appends one last message that holds these statements. In the metadata document of any other snippet, it adds them to the description.
+3. In the IPC streaming format of an Arrow data file, MAY append the end-of-stream marker.
+
+<div class="example" id="example-ending">
+The last message of <a href="#example-embedded-snippet">the embedded example</a>, which ends the snippet and adds the summary of its value field (<a href="#example-summary">the summary example</a>):
+
+```turtle
+ex:snippet tss:immutable true .
+
+ex:value-field tss:summary [
+    tss:missingValuePolicy tss:ExcludeEmptyValues ;
+    tss:count "5"^^xsd:integer ;
+    # ... and the other numbers of the summary
+] .
+MESSAGE
+```
+</div>
+
+The RDF Message Log of a growing snippet MUST NOT state `tss:immutable false`: the merge of all its messages would then state both `false` and `true`. Without it, the merge stays a conforming metadata document: it only gains `tss:immutable true` and the summaries. In a metadata document that is not a log, a writer replaces `tss:immutable false`, if stated, by `tss:immutable true`.
+
+A consumer that reads `tss:immutable true` reads the rest of the points once more, and then stops following the snippet ([[#following]]).
+
+# Following a growing snippet # {#following}
+
+A consumer that follows a [=Growing Snippet=] reads its points, and later reads the points that were added since. This section says how it finds out that points were added, and how it fetches only the new ones over HTTP [[RFC9110]]. Moving on to a next snippet once a snippet is immutable, and finding snippets, are left to a collection that contains the snippets, such as the pages of a [Linked Data Event Stream](https://w3id.org/ldes/specification).
+
+## Polling and caching ## {#polling}
+
+A publisher of a growing snippet SHOULD send an `ETag` or a `Last-Modified` header with its metadata document and with its data file, and SHOULD answer conditional requests (`If-None-Match`, `If-Modified-Since`) with `304 Not Modified` when nothing changed. It SHOULD state with `Cache-Control: max-age` how long a consumer waits before it asks again, and a consumer SHOULD NOT ask more often. Once a snippet is immutable, its publisher SHOULD send `Cache-Control: immutable` with a long `max-age` for its metadata document and its data file.
+
+A consumer of an [=External Snippet=] polls its metadata document and its data file each on its own. When the metadata document states `tss:immutable true`, all rows are in the data file ([[#ending]]): the consumer reads the data file once more, and stops.
+
+## Reading only the new bytes ## {#range-requests}
+
+The RDF Message Log of a growing `tss:EmbeddedRDFSnippet`, and the data file of a growing `tss:CSVSnippet` or `tss:ArrowSnippet`, only grow ([[#updating]]). A consumer then does not download them again, but asks for the bytes after the ones it has read, with a Range request [[RFC9110]]. It reads them in units that a writer appends whole:
+
+<table class="data">
+<thead>
+<tr><th>Snippet</th><th>Unit</th><th>A unit is complete when</th><th>State to keep</th></tr>
+</thead>
+<tbody>
+<tr><td><code>tss:EmbeddedRDFSnippet</code></td><td>an RDF Message [[RDF-MESSAGES]]</td><td>a message delimiter follows it</td><td>the version label, the prefixes and the base IRI that are in force at the end of the last complete message</td></tr>
+<tr><td><code>tss:CSVSnippet</code></td><td>a CSV record [[RFC4180]]</td><td>the line break that ends it follows; a line break inside a quoted cell does not end a record</td><td>the header line, and so the columns of the fields</td></tr>
+<tr><td><code>tss:ArrowSnippet</code></td><td>an encapsulated message of the IPC streaming format [[ARROW-IPC]]</td><td>all its bytes are there: the continuation marker, the length of its metadata, the metadata, and a body of the length that the metadata states</td><td>the schema, and the dictionaries so far</td></tr>
+</tbody>
+</table>
+
+A consumer that follows such a resource:
+
+1. Reads the whole representation once, with a request without `Range`. It keeps the state of the table, and the offset *N*: the number of bytes up to the end of the last complete unit. A last unit that is not complete is not read yet.
+2. Asks for the rest with `Range: bytes=N-`. It does not send `If-Range`: every append changes the validators of the resource, so `If-Range` would return the whole representation again. Byte offsets count the bytes of the representation without content coding, so the consumer SHOULD send `Accept-Encoding: identity` with a Range request.
+3. Handles the answer:
+    - `206 Partial Content` with a range that starts at *N*: it reads the new bytes with the state it kept, emits the points of the complete units, and moves *N* to the end of the last complete unit.
+    - `416 Range Not Satisfiable` with `Content-Range: bytes */L`: when *L* is *N*, nothing was added. When *L* is less than *N*, the resource shrank, and the consumer falls back (step 4).
+    - `200 OK`: the server ignored the Range header and returned the whole representation. The consumer falls back (step 4) on that representation.
+    - `410 Gone` or `404 Not Found`: the snippet is no longer served at this IRI; the consumer stops.
+4. Falls back when the new bytes cannot be read as expected: when they do not start with a complete unit, do not parse with the state it kept, or when the resource shrank. It drops its state, and reads the whole representation again from byte 0, as in step 1. It does not emit again a point whose time it has emitted already: the [=Key=] identifies a point.
+5. Repeats from step 2, as often as the caching rules allow ([[#polling]]), until the snippet is immutable: it states `tss:immutable true`, or, for an Arrow stream, the end-of-stream marker follows the last complete unit.
+
+A consumer MAY check that the bytes it read before did not change, by asking for `Range: bytes=(N-k)-` and comparing the first *k* bytes with the last *k* bytes it read. When they differ, it falls back (step 4). A server and a consumer MAY use an open-ended live range [[RFC8673]] to receive the new bytes as they are appended, without polling.
+
+## Embedded JSON points ## {#following-json}
+
+The metadata document of a growing `tss:EmbeddedJSONSnippet` is not append-only: a [=Write=] rewrites `tss:points`. A consumer that follows it asks for the whole document again with a conditional request ([[#polling]]). The existing objects of `tss:points` do not change and stay in the same order ([[#updating-embedded]]): when the consumer has read *n* objects, it emits the objects after the first *n*. When the first *n* objects are not the ones it read, it falls back as in [[#range-requests]], step 4.
 
 # Vocabulary overview # {#vocabulary}
 
@@ -940,7 +1066,7 @@ An [=External Snippet=] is never changed this way: managing the data file of an 
 <tr><td><code>tss:MissingValuePolicy</code>, <code>tss:ValueEncoding</code></td><td>class</td><td>-</td><td>[[#summaries]], [[#value-encoding]]</td></tr>
 <tr><td><code>tss:ExcludeEmptyValues</code></td><td>individual</td><td>value of <code>tss:missingValuePolicy</code></td><td>[[#summaries]]</td></tr>
 <tr><td><code>tss:DeltaFromBaseline</code></td><td>individual</td><td>value of <code>tss:valueEncoding</code></td><td>[[#value-encoding]]</td></tr>
-<tr><td><code>tss:mutable</code>, <code>tss:committedUntil</code></td><td>property</td><td>snippet</td><td>[[#change]]</td></tr>
+<tr><td><code>tss:immutable</code></td><td>property</td><td>snippet</td><td>[[#change]]</td></tr>
 <tr><td><code>tss:hasField</code>, <code>tss:timeField</code>, <code>tss:key</code></td><td>property</td><td>snippet</td><td>[[#time-and-key]]</td></tr>
 <tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>snippet</td><td>[[#window]]</td></tr>
 <tr><td><code>tss:hasPoint</code></td><td>property</td><td><code>tss:EmbeddedRDFSnippet</code></td><td>[[#rdf-points]]</td></tr>
@@ -973,6 +1099,6 @@ This specification defines four conformance classes:
 : <dfn export>Conforming data</dfn>
 :: The points of a snippet, embedded or in its data file, that meet the requirements on points: the time of every point (on a [=Time Grid=], its step), the key, the lexical form of the values, and the [=Time Window=]. The points of an embedded snippet are part of its metadata document; the rows of a data file are not.
 : <dfn export>Conforming consumer</dfn>
-:: Software that reads a conforming metadata document and its data as this specification says: it selects the rules for each snippet by its class, reads the points as [[#points]] or [[#data-files]] says, reads the times as [[#times]] says, decodes the values of a field with a value encoding ([[#value-encoding]]), applies the [=Time Window=] and the [=Empty Value=] rules, and reports an error where this specification calls something an error. A <dfn export>conforming expander</dfn> is a conforming consumer that also expands a snippet into observations as [[#expanding]] says.
+:: Software that reads a conforming metadata document and its data as this specification says: it selects the rules for each snippet by its class, reads the points as [[#points]] or [[#data-files]] says, reads the times as [[#times]] says, decodes the values of a field with a value encoding ([[#value-encoding]]), applies the [=Time Window=] and the [=Empty Value=] rules, and reports an error where this specification calls something an error. When it follows a [=Growing Snippet=], it does so as [[#following]] says. A <dfn export>conforming expander</dfn> is a conforming consumer that also expands a snippet into observations as [[#expanding]] says.
 : <dfn export>Conforming writer</dfn>
-:: Software that changes the points of an [=Embedded Snippet=] only by the [=Write=] of [[#updating]], and that leaves a conforming metadata document conforming after every Write.
+:: Software that changes the points of an [=Embedded Snippet=] only by the [=Write=] of [[#updating-embedded]], that only appends to the data file of a [=Growing Snippet=] as [[#appending-data-files]] says, that ends a growing snippet as [[#ending]] says, and that leaves a conforming metadata document conforming after every change.
