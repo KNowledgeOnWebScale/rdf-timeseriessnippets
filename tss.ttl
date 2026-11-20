@@ -27,9 +27,7 @@
 <https://w3id.org/tss#> a owl:Ontology ;
     dcterms:title "RDF Time Series Sources"@en ;
     dcterms:description "Vocabulary for describing time series sources in RDF: a source, its fields and how to read their values, the summaries of those values, and the points of a source whose readings are embedded in its metadata."@en ;
-    dcterms:modified "2026-11-18"^^xsd:date ;
-    owl:versionInfo "0.3.0" ;
-    owl:versionIRI <https://w3id.org/tss/0.3.0#> ;
+    dcterms:modified "2026-11-20"^^xsd:date ;
     rdfs:comment "This ontology lists the terms of the RDF Time Series Sources specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
     rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-tss/> ;
     dcterms:contributor <https://pietercolpaert.be/#me>, <https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/> ;
@@ -51,7 +49,7 @@ tss:EmbeddedJSONSource a owl:Class ;
 
 tss:EmbeddedRDFSource a owl:Class ;
     rdfs:label "Embedded RDF source"@en ;
-    rdfs:comment "A source whose readings are in the metadata itself, as RDF points: each reading is a node (tss:Point) that the source links to with tss:hasPoint, with its time (the field property of the time field, tss:time by default) and its value (the field property of its value field). The points of one time form a row. The metadata document of a growing source of this class is an RDF Message Log, to which each new row is appended as one message."@en ;
+    rdfs:comment "A source whose readings are in the metadata itself, as RDF points: each reading is a node (tss:Point) that the source links to with tss:hasPoint, with its value field (tss:field, which may be left out when the source has one value field), its time (tss:time) and its reading (tss:value). The points of one time form a row. The metadata document of a growing source of this class is an RDF Message Log, to which each new row is appended as one message."@en ;
     rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -78,26 +76,26 @@ tss:ArrowSource a owl:Class ;
 
 tss:Field a owl:Class ;
     rdfs:label "Field"@en ;
-    rdfs:comment "A field of a source: one column of its rows, such as the time or one series of values. It says where its values are (tss:columnName, tss:columnIndex), how to read them (tss:datatype), and which RDF property states them (tss:property). A field is never itself the predicate of its values. Every field is a tss:ValueField or a tss:MetaField."@en ;
+    rdfs:comment "A field of a source: one column of its rows, such as the time or one series of values. It says where its values are (tss:columnName, tss:columnIndex), how to read them (tss:datatype). A field is never itself the predicate of its values. Every field is a tss:ValueField or a tss:ContextField."@en ;
     skos:closeMatch csvw:Column ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:ValueField a owl:Class ;
     rdfs:label "Value field"@en ;
-    rdfs:comment "A field whose values are readings: each of its values, with the time of its row, is a tss:Point. Its default field property is a subproperty of tss:value; a property it states with tss:property keeps the meaning of its own vocabulary."@en ;
+    rdfs:comment "A field whose values are readings: each of its values, with the time of its row, is a tss:Point, which states the value with tss:value and links to the field with tss:field. What the readings mean is stated on the field (tss:observedProperty, tss:unit, tss:sensor, tss:featureOfInterest)."@en ;
     rdfs:subClassOf tss:Field ;
-    owl:disjointWith tss:MetaField ;
+    owl:disjointWith tss:ContextField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
-tss:MetaField a owl:Class ;
-    rdfs:label "Meta field"@en ;
-    rdfs:comment "A field whose values are not readings, but say something about a row or about the points in it: the time field, the step field, a describing field, or another field such as an identifier. Only the values of the time field and of describing fields are stated on the points."@en ;
+tss:ContextField a owl:Class ;
+    rdfs:label "Context field"@en ;
+    rdfs:comment "A field whose values are not readings, but give the context of a row or of the points in it: the time field, the step field, a describing field, or another field such as an identifier. Only the values of the time field (with tss:time) and of describing fields (with their tss:property) are stated on the points. Called tss:MetaField in earlier drafts."@en ;
     rdfs:subClassOf tss:Field ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:Point a owl:Class ;
     rdfs:label "Point"@en ;
-    rdfs:comment "One reading: the value of one value field in one row of a source, with the time of that row. A point has the time (tss:time, or the field property of the time field), its value (the field property of its value field), and the values of the describing fields that describe its value field. An expanded point links to its value field with tss:field. A point is a blank node, or an IRI given in the RDF points or made with tss:aboutUrl. Aligned with sosa:Observation and saref:Measurement."@en ;
+    rdfs:comment "One reading: the value of one value field in one row of a source, with the time of that row. A point states its value field (tss:field), its time (tss:time), its reading (tss:value), and the values of the describing fields that describe its value field, each with the tss:property of that describing field. A point of a source with exactly one value field may leave out tss:field; an expanded point always states it. A point is a blank node, or an IRI given in the RDF points or made with tss:aboutUrl. Aligned with sosa:Observation and saref:Measurement."@en ;
     rdfs:subClassOf sosa:Observation, saref:Measurement ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -288,7 +286,7 @@ tss:stepField a owl:ObjectProperty, owl:FunctionalProperty ;
 
 tss:columnName a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "column name"@en ;
-    rdfs:comment "The name of the field's column in a data file, or its key in the JSON rows of a tss:EmbeddedJSONSource; unique within its source. Required for a field of an external source (except the time field of a source with a time grid) and of a tss:EmbeddedJSONSource; for a field of a tss:EmbeddedRDFSource, required when it is not the time field and states no tss:property. The default field property is made from it."@en ;
+    rdfs:comment "The name of the field's column in a data file, or its key in the JSON rows of a tss:EmbeddedJSONSource; unique within its source. Required for a field of an external source (except the time field of a source with a time grid) and of a tss:EmbeddedJSONSource; for a field of a tss:EmbeddedRDFSource, required for a describing field that states no tss:property. The default property of a describing field is made from it."@en ;
     rdfs:domain tss:Field ;
     rdfs:range xsd:string ;
     skos:closeMatch csvw:name ;
@@ -367,7 +365,7 @@ tss:fieldDescription a owl:ObjectProperty, owl:FunctionalProperty ;
 tss:describesField a owl:ObjectProperty ;
     rdfs:label "describes field"@en ;
     rdfs:comment "Another field of the same source that this field's values are about: in each reading, this field's value describes that field's value."@en ;
-    rdfs:domain tss:MetaField ;
+    rdfs:domain tss:ContextField ;
     rdfs:range tss:ValueField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -470,15 +468,14 @@ tss:generatedAtTime a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 
 #################################################################
-#    Field properties and points
+#    Points and the properties of describing fields
 #################################################################
 
 tss:property a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "property"@en ;
-    rdfs:comment "The RDF property that states the values of the field: in the RDF points of a tss:EmbeddedRDFSource, and in the points that any source is expanded into. Unique within its source. When not stated, it is tss:time for the time field, and otherwise the IRI made of the base IRI (the data file of an external source, the metadata document of an embedded source), '#' and the field's tss:columnName, as CSVW's default propertyUrl {#_name}. The default property of a value field is a subproperty of tss:value; the expansion of a source states this for each such field. A property that a field states itself keeps the meaning of its own vocabulary: it is not made a subproperty of tss:value or tss:time. A meta field does not state tss:value, and only the time field states tss:time."@en ;
-    rdfs:domain tss:Field ;
+    rdfs:comment "The RDF property that states the values of a describing field on the points it describes: in the RDF points of a tss:EmbeddedRDFSource, and in the points that any source is expanded into. Only a describing field states one, and it is unique within its source. When not stated, it is the IRI made of the base IRI (the data file of an external source, the metadata document of an embedded source), '#' and the field's tss:columnName, as CSVW's default propertyUrl {#_name}. It is not rdf:type or a term of this vocabulary. It keeps the meaning of its own vocabulary, and is not aligned with SOSA or SAREF: the value of a describing field says something about a reading, and is not a reading itself."@en ;
+    rdfs:domain tss:ContextField ;
     rdfs:range rdf:Property ;
-    skos:closeMatch csvw:propertyUrl ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:aboutUrl a owl:DatatypeProperty, owl:FunctionalProperty ;
@@ -491,14 +488,14 @@ tss:aboutUrl a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:field a owl:ObjectProperty, owl:FunctionalProperty ;
     rdfs:label "field"@en ;
-    rdfs:comment "The value field of a point: the field whose reading the point is. The expansion of a source adds it to every point. Through it, a point gets the observed property, sensor, feature of interest and unit of its field."@en ;
+    rdfs:comment "The value field of a point: the field whose reading the point is. Every point states it, except that a point of a source with exactly one value field may leave it out; the expansion of a source adds it to every point. Through it, a point gets the observed property, sensor, feature of interest and unit of its field."@en ;
     rdfs:domain tss:Point ;
     rdfs:range tss:ValueField ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
 tss:time a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "time"@en ;
-    rdfs:comment "The time of a point: the time of its row, an xsd:dateTime with a timezone. The default field property of the time field. A time field that states another tss:property keeps the meaning of that property; its publisher may state that it is a subproperty of tss:time."@en ;
+    rdfs:comment "The time of a point: the time of its row, the value of the source's time field, an xsd:dateTime with a timezone. Every point states it."@en ;
     rdfs:domain tss:Point ;
     rdfs:range xsd:dateTime ;
     rdfs:subPropertyOf sosa:resultTime, saref:hasTimestamp ;
@@ -506,7 +503,7 @@ tss:time a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:value a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "value"@en ;
-    rdfs:comment "The reading of a point. An abstract property: a point states its reading with the field property of its value field, as a literal of the field's tss:datatype. The default property of a value field is a subproperty of tss:value; a property that a field states with tss:property is one only when its publisher states so."@en ;
+    rdfs:comment "The reading of a point: the value of its value field, as a literal of the field's tss:datatype (the decoded value, for a field with a tss:valueEncoding). Every point states it. A property of a domain vocabulary, such as ex:temperature, is derived from tss:field and tss:value with a rule, not with OWL: the values of tss:value are literals, and OWL 2 property chains only follow object properties."@en ;
     rdfs:domain tss:Point ;
     rdfs:subPropertyOf sosa:hasSimpleResult, saref:hasValue ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
@@ -536,7 +533,7 @@ saref:isMeasuredIn owl:propertyChainAxiom ( tss:field tss:unit ) .
 
 tss:MessageStreamProfile a prof:Profile ;
     rdfs:label "RDF Time Series Sources message stream profile"@en ;
-    rdfs:comment "The RDF Message Stream Profile of RDF Time Series Sources. A stream that follows it holds description messages (the description of sources and their fields), row messages (one row of one source: the source tss:hasPoint one point per value field with a value, all with the time of the row) and ending messages (tss:immutable true and optionally the stored summaries). Row messages are read with the description message of their source, which comes before them. The focus nodes of a row message are its points; its timestamp is the time of its row, stated with tss:time unless the time field states another tss:property. A stream announces it with dcterms:conformsTo or an HTTP Link with rel=profile."@en ;
+    rdfs:comment "The RDF Message Stream Profile of RDF Time Series Sources. A stream that follows it holds description messages (the description of sources and their fields), row messages (one row of one source: the source tss:hasPoint one point per value field with a value, all with the time of the row) and ending messages (tss:immutable true and optionally the stored summaries). Row messages are read with the description message of their source, which comes before them. The focus nodes of a row message are its points; its timestamp is the time of its row, stated with tss:time. A stream announces it with dcterms:conformsTo or an HTTP Link with rel=profile."@en ;
     prof:isProfileOf <https://w3c-cg.github.io/rsp/spec/messages> ;
     rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-tss/#message-profile> ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
