@@ -1,6 +1,5 @@
 <pre class="metadata">
 Title: RDF Time Series Sources
-Warning: Not Ready
 Shortname: RDF-TSS
 Level: none
 Status: LD
