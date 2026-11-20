@@ -8,7 +8,7 @@ Repository: KNowledgeOnWebScale/rdf-tss
 URL: https://knowledgeonwebscale.github.io/rdf-tss/
 Editor: Pieter Colpaert, https://pietercolpaert.be
 Editor: Shehab Abdelfatah, https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/
-Abstract: RDF Time Series Sources describes how to connect your RDF knowledge graph to your time series. The readings stay compact: inside the metadata, as one small RDF node per reading or as one JSON literal, or in an external data file. RDF describes the source (where its readings are, which period they cover, whether readings may still be added) and each of its fields (the datatype of its values, where they are in a data file or JSON row, the RDF property that states them, how they are stated, and what they observe, in which unit, with which sensor). The readings can be summarised and expanded into RDF points, which are aligned with SOSA and SAREF observations.
+Abstract: RDF Time Series Sources describes how to connect your RDF knowledge graph to your time series. The readings stay compact: inside the metadata, as one small RDF node per reading or as one JSON literal, or in an external data file. RDF describes the source (where its readings are, which period they cover, whether readings may still be added) and each of its fields (the datatype of its values, where they are in a data file or JSON row, how they are stated, and what they observe, in which unit, with which sensor). The readings can be summarised and expanded into RDF points, which are aligned with SOSA and SAREF observations.
 Markup Shorthands: markdown yes, css no
 Boilerplate: conformance no
 </pre>
@@ -43,7 +43,8 @@ With RDF Time Series Sources, a publisher keeps the readings compact and describ
 
 - A [=Source=] describes a table of readings: every [=Row=] has one time and values for one or more [=Fields=]. Series that are measured together share one [=Time Field=]. Every value of a [=Value Field=] is one reading: a [=Point=].
 - The class of a source says where its readings are: embedded in the metadata, as RDF points (`tss:EmbeddedRDFSource`) or as one JSON literal (`tss:EmbeddedJSONSource`), or kept in an external Parquet, CSV or Arrow data file (`tss:ParquetSource`, `tss:CSVSource`, `tss:ArrowSource`). The same field descriptions read them all.
-- Each field states the datatype of its values and, for a data file or JSON rows, its column name. It also has a [=Field Property=]: the RDF property that states its values, which by default is made from its column name, as in CSVW [[TABULAR-METADATA]]. Optionally, a value field states what it observes, in which unit, with which sensor, of which feature of interest.
+- Each field states the datatype of its values and, for a data file or JSON rows, its column name. Optionally, a value field states what it observes, in which unit, with which sensor, of which feature of interest.
+- In RDF, every [=Point=] states its value field, its time and its reading with `tss:field`, `tss:time` and `tss:value`: what its reading means is stated once, on its field. A [=Describing Field=], such as a status flag, states its values on the points with a [=Field Property=] of its own, which by default is made from its column name, as in CSVW [[TABULAR-METADATA]].
 - A data file can give the time of each row as a step on a regular [=Time Grid=], and state the values of a field as differences from a baseline (`tss:valueEncoding`).
 
 The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a source to which readings are still added. When the publisher enables it, the consumer only fetches the new readings, with HTTP Range requests ([[#following]]). Streamed as RDF messages, the readings follow the RDF Message Stream Profile of this specification ([[#message-profile]]).
@@ -60,7 +61,7 @@ RDF Time Series Sources use the following prefix and namespace:
 @prefix tss: <https://w3id.org/tss#> .
 ```
 
-Note: Earlier drafts of this specification were called RDF Time Series Snippets. The namespace stays the same, but `tss:Source` was `tss:Snippet`, the five source classes, such as `tss:EmbeddedRDFSource`, ended in `Snippet`, such as `tss:EmbeddedRDFSnippet`, and `tss:sourceDescription` was `tss:snippetDescription`.
+Note: Earlier drafts of this specification were called RDF Time Series Snippets. The namespace stays the same, but `tss:Source` was `tss:Snippet`, the five source classes, such as `tss:EmbeddedRDFSource`, ended in `Snippet`, such as `tss:EmbeddedRDFSnippet`, `tss:sourceDescription` was `tss:snippetDescription`, and `tss:ContextField` was `tss:MetaField`. In earlier drafts, a point also stated its time and its reading with a property of the time field and of its value field (`tss:property`), which by default was made from the column name. A point now always states them with `tss:time` and `tss:value`, and only a describing field has a property of its own.
 
 ## Embedded example ## {#embedded-example}
 
@@ -90,14 +91,13 @@ ex:source
         ex:value-field .
 
 ex:time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     rdfs:label "Observation time"@en ;
     tss:datatype xsd:dateTime .
 
 ex:value-field
     a tss:ValueField ;
     rdfs:label "Electrical conductivity"@en ;
-    tss:property ex:conductivity ;
     tss:datatype xsd:double ;
     tss:minimum "0"^^xsd:double ;
     tss:maximum "10000"^^xsd:double ;
@@ -105,51 +105,46 @@ ex:value-field
     tss:unit unit:MicroS-PER-CentiM ;
     tss:sensor ex:sensor-1 ;
     tss:featureOfInterest ex:feature-1 .
-
-ex:conductivity
-    rdfs:subPropertyOf tss:value .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-    ex:conductivity "4810.5"^^xsd:double
+    tss:value "4810.5"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T08:15:00Z"^^xsd:dateTime ;
-    ex:conductivity "4722.4"^^xsd:double
+    tss:value "4722.4"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T08:30:00Z"^^xsd:dateTime ;
-    ex:conductivity "4751.9"^^xsd:double
+    tss:value "4751.9"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T09:15:00Z"^^xsd:dateTime ;
-    ex:conductivity "4719.3"^^xsd:double
+    tss:value "4719.3"^^xsd:double
 ] .
 MESSAGE
 ex:source tss:hasPoint [
     tss:time "2024-05-12T09:45:00Z"^^xsd:dateTime ;
-    ex:conductivity "4783.6"^^xsd:double
+    tss:value "4783.6"^^xsd:double
 ] .
 MESSAGE
 ```
 </div>
 
-The source is a `tss:EmbeddedRDFSource`: it links to each point with `tss:hasPoint`. Each message holds one row, which here is one point, as the source has one value field. A point states its time with the [=Field Property=] of the time field, which is `tss:time` when the time field does not state one, and its value with the field property of its value field, `ex:conductivity`. That property is the publisher's own: the publisher states that it is a subproperty of `tss:value`, so that its readings are aligned with SOSA and SAREF ([[#field-properties]]). Every message ends with the delimiter `MESSAGE`, so a consumer knows that the last message it read is complete.
+The source is a `tss:EmbeddedRDFSource`: it links to each point with `tss:hasPoint`. Each message holds one row, which here is one point, as the source has one value field. A point states its time with `tss:time` and its reading with `tss:value` ([[#point-values]]). It leaves out `tss:field`, the link to its value field: the source has one value field, so every point is a point of that field. Every message ends with the delimiter `MESSAGE`, so a consumer knows that the last message it read is complete.
 
-Expanded ([[#expanding]]), every point also links to its field, and the time field gets its default property stated. The first point and what the expansion adds to it:
+Expanded ([[#expanding]]), every point also links to its field. The first point, expanded:
 
 <div class="example" id="example-expanded-point">
 ```turtle
 ex:source tss:hasPoint [
     tss:field ex:value-field ;
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-    ex:conductivity "4810.5"^^xsd:double
+    tss:value "4810.5"^^xsd:double
 ] .
-
-ex:time-field tss:property tss:time .
 
 # ... and four more points
 ```
@@ -165,17 +160,17 @@ A <dfn>Time Series</dfn> is a set of data points ordered by time, where each dat
 
 A <dfn>Source</dfn> holds the readings of one or more time series that share one time field, and is described by one node of one of the five source classes ([[#storage]]). It is a table: each row is a [=Row=], each column a [=Field=]. Each [=Value Field=] holds one [=Time Series=].
 
-A <dfn>Field</dfn> is one column of a [=Source=], described by one `tss:Field`: the datatype of its values, the property that states them, and, optionally, what they mean. A field is a [=Value Field=] or a [=Meta Field=] ([[#field-kinds]]).
+A <dfn>Field</dfn> is one column of a [=Source=], described by one `tss:Field`: the datatype of its values, where they are, and, optionally, what they mean. A field is a [=Value Field=] or a [=Context Field=] ([[#field-kinds]]).
 
 A <dfn>Value Field</dfn> (`tss:ValueField`) is a field whose values are readings: each of its values is a [=Point=].
 
-A <dfn>Meta Field</dfn> (`tss:MetaField`) is a field whose values are not readings, but say something about a row or about the points in it: the [=Time Field=], the [=Step Field=], a [=Describing Field=], or another field such as an identifier.
+A <dfn>Context Field</dfn> (`tss:ContextField`) is a field whose values are not readings, but give the context of a row or of the points in it: the [=Time Field=], the [=Step Field=], a [=Describing Field=], or another field such as an identifier.
 
 A <dfn>Row</dfn> is one row of a [=Source=]: one time, and at most one value for each [=Field=].
 
 A <dfn>Point</dfn> is one reading (`tss:Point`): the value of one [=Value Field=] in one [=Row=], with the time of that row and the values of the describing fields that describe it.
 
-The <dfn>Field Property</dfn> of a field is the RDF property that states its values: its `tss:property`, or, when it states none, its default property ([[#field-properties]]).
+The <dfn>Field Property</dfn> of a [=Describing Field=] is the RDF property that states its values on the points: its `tss:property`, or, when it states none, its default property ([[#point-values]]).
 
 The <dfn>Time Field</dfn> of a source is the field that holds the time of each row (`tss:timeField`).
 
@@ -195,7 +190,7 @@ Note: This is a known limitation: a field cannot hold the empty string as a valu
 
 The <dfn>Decoded Value</dfn> of a value is what the value stands for: the value itself, or, for a field with a `tss:valueEncoding`, the value decoded as its encoding says ([[#value-encoding]]).
 
-A <dfn>Describing Field</dfn> is a [=Meta Field=] that says something about the values of a value field in the same row (`tss:describesField`).
+A <dfn>Describing Field</dfn> is a [=Context Field=] that says something about the values of a value field in the same row (`tss:describesField`).
 
 A <dfn>Stored Summary</dfn> holds numbers computed from the values of one field, such as their count and mean (`tss:summary`).
 
@@ -321,16 +316,16 @@ ex:source
 
 # Fields # {#fields}
 
-Each [=Field=] is a `tss:Field`, linked from exactly one source with `tss:hasField`. The same field description reads a column of a data file, a key of the JSON rows and the values of the RDF points. A field is never itself the predicate of its values: its [=Field Property=] is ([[#field-properties]]).
+Each [=Field=] is a `tss:Field`, linked from exactly one source with `tss:hasField`. The same field description reads a column of a data file, a key of the JSON rows and the values of the RDF points. A field is never itself the predicate of its values ([[#point-values]]).
 
 <table class="data">
 <thead>
 <tr><th>Property</th><th>Value</th><th>Required</th><th>Meaning</th></tr>
 </thead>
 <tbody>
-<tr><td><code>rdf:type</code></td><td><code>tss:ValueField</code> or <code>tss:MetaField</code></td><td>required: exactly one of the two</td><td>whether its values are readings ([[#field-kinds]])</td></tr>
-<tr><td><code>tss:columnName</code></td><td>non-empty text</td><td>required for a field of an external source, except the time field of a source with a [=Time Grid=], which has none; required for a field of a <code>tss:EmbeddedJSONSource</code>; for a field of a <code>tss:EmbeddedRDFSource</code>, required when the field is not the time field and states no <code>tss:property</code>, otherwise optional</td><td>the name of the field's column (the CSV header, the Parquet or Arrow column), or its key in the JSON rows; unique within the source</td></tr>
-<tr><td><code>tss:property</code></td><td>IRI of an <code>rdf:Property</code></td><td>optional; default: see [[#field-properties]]</td><td>the property that states the field's values in RDF; unique within the source</td></tr>
+<tr><td><code>rdf:type</code></td><td><code>tss:ValueField</code> or <code>tss:ContextField</code></td><td>required: exactly one of the two</td><td>whether its values are readings ([[#field-kinds]])</td></tr>
+<tr><td><code>tss:columnName</code></td><td>non-empty text</td><td>required for a field of an external source, except the time field of a source with a [=Time Grid=], which has none; required for a field of a <code>tss:EmbeddedJSONSource</code>; for a field of a <code>tss:EmbeddedRDFSource</code>, required for a describing field that states no <code>tss:property</code>, otherwise optional</td><td>the name of the field's column (the CSV header, the Parquet or Arrow column), or its key in the JSON rows; unique within the source</td></tr>
+<tr><td><code>tss:property</code></td><td>IRI of an <code>rdf:Property</code></td><td>optional, for a describing field only; default: see [[#point-values]]</td><td>the property that states the field's values on the points it describes; unique within the source</td></tr>
 <tr><td><code>tss:datatype</code></td><td>IRI</td><td>required</td><td>the datatype of the values, such as <code>xsd:double</code></td></tr>
 <tr><td><code>tss:columnIndex</code></td><td><code>xsd:integer</code>, 0 or more</td><td>optional; none for the time field of a source with a [=Time Grid=]</td><td>the position of the column, the first being 0; unique within the source</td></tr>
 <tr><td><code>tss:language</code></td><td>language tag</td><td>optional</td><td>the language of the values of an <code>rdf:langString</code> field</td></tr>
@@ -342,43 +337,43 @@ Each [=Field=] is a `tss:Field`, linked from exactly one source with `tss:hasFie
 <tr><td><code>tss:sensor</code></td><td>IRI</td><td>optional, for a value field</td><td>the sensor that made the values</td></tr>
 <tr><td><code>tss:featureOfInterest</code></td><td>IRI</td><td>optional, for a value field</td><td>the thing the values are about</td></tr>
 <tr><td><code>tss:aboutUrl</code></td><td>URI template, as text</td><td>optional, for a value field of a source that is not a <code>tss:EmbeddedRDFSource</code></td><td>how the IRI of each point of the field is made ([[#point-iris]])</td></tr>
-<tr><td><code>tss:describesField</code></td><td>a value field of the same source</td><td>optional, any number, for a meta field</td><td>the field whose values this field says something about ([[#describing]])</td></tr>
+<tr><td><code>tss:describesField</code></td><td>a value field of the same source</td><td>optional, any number, for a context field</td><td>the field whose values this field says something about ([[#describing]])</td></tr>
 <tr><td><code>tss:summary</code></td><td>a node</td><td>optional</td><td>a [=Stored Summary=] of the values ([[#summaries]])</td></tr>
 <tr><td><code>rdfs:label</code>, <code>rdfs:comment</code></td><td>literal</td><td>optional, any number</td><td>for people</td></tr>
 <tr><td><code>tss:fieldDescription</code></td><td>a node, any vocabulary</td><td>optional</td><td>a free description of the field</td></tr>
 </tbody>
 </table>
 
-## Value fields and meta fields ## {#field-kinds}
+## Value fields and context fields ## {#field-kinds}
 
-Every field MUST state exactly one of `tss:ValueField` and `tss:MetaField` as its `rdf:type`. Both are subclasses of `tss:Field`.
+Every field MUST state exactly one of `tss:ValueField` and `tss:ContextField` as its `rdf:type`. Both are subclasses of `tss:Field`.
 
 - A [=Value Field=] holds readings: each of its values is a [=Point=] ([[#points]]). A value field may state what its values observe ([[#meaning]]).
-- A [=Meta Field=] holds values that are not readings. The time field, the step field and every describing field MUST be meta fields. Any other field whose values are not readings, such as an identifier that the IRIs of the points are made from ([[#point-iris]]), is a meta field too. A meta field MUST NOT state `tss:observedProperty`, `tss:sensor`, `tss:featureOfInterest` or `tss:aboutUrl`.
+- A [=Context Field=] holds values that are not readings. The time field, the step field and every describing field MUST be context fields. Any other field whose values are not readings, such as an identifier that the IRIs of the points are made from ([[#point-iris]]), is a context field too. A context field MUST NOT state `tss:observedProperty`, `tss:sensor`, `tss:featureOfInterest` or `tss:aboutUrl`.
 
-A source SHOULD have at least one value field: a source without one holds no readings. The values of a meta field only end up in a point in two ways: the value of the time field is the time of every point in its row, and the value of a describing field is stated on the points that it describes ([[#describing]]). The values of the other meta fields, such as the step field, are not stated on the points.
+A source SHOULD have at least one value field: a source without one holds no readings. The values of a context field only end up in a point in two ways: the value of the time field is the time of every point in its row, and the value of a describing field is stated on the points that it describes ([[#describing]]). The values of the other context fields, such as the step field, are not stated on the points.
 
-## Field properties ## {#field-properties}
+## How points state values ## {#point-values}
 
-In RDF, the values of a field are stated with its [=Field Property=]: in the points of a `tss:EmbeddedRDFSource` ([[#rdf-points]]), and in the points that a source of any class is expanded into ([[#expanding]]). A field states it with `tss:property`, the IRI of an `rdf:Property`, as a column in CSVW states it with `csvw:propertyUrl` [[TABULAR-METADATA]]. A field that states no `tss:property` has a default property:
+In RDF, every [=Point=] states its value field, its time and its reading with the same three properties of the TSS vocabulary: in the points of a `tss:EmbeddedRDFSource` ([[#rdf-points]]), and in the points that a source of any class is expanded into ([[#expanding]]).
 
-- for the time field, `tss:time`;
-- for any other field, the IRI made of a base IRI, `#`, and the field's `tss:columnName` percent-encoded as a fragment [[RFC3986]], as the default `{#_name}` of `csvw:propertyUrl` is made. The base IRI is the IRI of the data file for an external source, and the IRI of the metadata document for an embedded source.
+- `tss:field` states its value field;
+- `tss:time` states the time of its row: the value of the time field;
+- `tss:value` states its reading: the value of its value field.
 
-For example, the field with column name `value` of a source whose data file is `https://example.org/data.csv` has the default property `https://example.org/data.csv#value`. In the RDF points of a `tss:EmbeddedRDFSource`, a field other than the time field has no default property unless it states a `tss:columnName`. Two fields of the same source MUST NOT have the same field property.
+A field is never itself the predicate of its values, and the predicate does not say what a reading means: the value field of the point says that ([[#meaning]]). Through `tss:time` and `tss:value`, every point is aligned with SOSA and SAREF ([[#alignment]]).
 
-A default property is made by this specification, so this specification also says what it means:
+The value of a [=Describing Field=] is stated on the points that it describes with the [=Field Property=] of the describing field ([[#describing]]). A describing field states it with `tss:property`, the IRI of an `rdf:Property`, as a column in CSVW states it with `csvw:propertyUrl` [[TABULAR-METADATA]]. A describing field that states no `tss:property` has a default property: the IRI made of a base IRI, `#`, and the field's `tss:columnName` percent-encoded as a fragment [[RFC3986]], as the default `{#_name}` of `csvw:propertyUrl` is made. The base IRI is the IRI of the data file for an external source, and the IRI of the metadata document for an embedded source.
 
-- The default property of a value field is a subproperty of `tss:value`.
-- The default property of a meta field other than the time field is a property of its own, which is not a subproperty of `tss:value` or `tss:time`.
+For example, the describing field with column name `status` of a source whose data file is `https://example.org/data.csv` has the default property `https://example.org/data.csv#status`. A describing field of a `tss:EmbeddedRDFSource` has no default property unless it states a `tss:columnName`, so it MUST state `tss:property` or `tss:columnName`.
 
-The expansion of a source writes this out for each value field without a `tss:property`, such as `<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value` ([[#expanding]]). Through `tss:time` and `tss:value`, the default properties are aligned with SOSA and SAREF ([[#alignment]]).
-
-A property that a field states with `tss:property` keeps the meaning that its own vocabulary gives it: this specification does not make it a subproperty of `tss:value` or `tss:time`, and neither does the expansion. A publisher can therefore reuse a property of another vocabulary, such as `sosa:hasSimpleResult` for a value field or `prov:generatedAtTime` for the time field. A publisher that wants the readings of its own property aligned, states in the metadata that the property is a subproperty of `tss:value`, as <a href="#example-embedded-source">the embedded example</a> does. A meta field MUST NOT state `tss:value`, and a field other than the time field MUST NOT state `tss:time`, as its `tss:property`.
+- Only a describing field states `tss:property`: the time field, the value fields and the other context fields MUST NOT state one.
+- A field property MUST NOT be `rdf:type` or a term of the TSS vocabulary, such as `tss:field`, `tss:time`, `tss:value` or `tss:hasPoint`. Two describing fields of the same source MUST NOT have the same field property.
+- A property that a describing field states keeps the meaning that its own vocabulary gives it, and a default property is a property of its own. This specification does not align either: the value of a describing field says something about a reading, and is not a reading itself.
 
 ## Point IRIs ## {#point-iris}
 
-A point is a blank node, unless its value field states with `tss:aboutUrl` how the IRI of each of its points is made, as `csvw:aboutUrl` does for the cells of a column [[TABULAR-METADATA]]. The value of `tss:aboutUrl` is a URI template [[RFC6570]]. For each row with a value for the field, the template is expanded, and the result resolved against the base IRI of [[#field-properties]], into the IRI of the point:
+A point is a blank node, unless its value field states with `tss:aboutUrl` how the IRI of each of its points is made, as `csvw:aboutUrl` does for the cells of a column [[TABULAR-METADATA]]. The value of `tss:aboutUrl` is a URI template [[RFC6570]]. For each row with a value for the field, the template is expanded, and the result resolved against the base IRI of [[#point-values]], into the IRI of the point:
 
 - Each variable of the template is the `tss:columnName` of a field of the source, and stands for the value of that field in the row, as it is written. An [=Empty Value=] leaves the variable undefined.
 - Two points of a source MUST NOT get the same IRI: the template usually holds the time, or another value that differs from row to row, and a part of its own for each value field.
@@ -410,12 +405,12 @@ An `rdf:langString` field states the language of its values with `tss:language`.
 
 ## What a field observes ## {#meaning}
 
-`tss:observedProperty`, `tss:unit`, `tss:sensor` and `tss:featureOfInterest` say what the values of a value field mean. They are stated field by field, so the fields of one source can observe different properties, with different sensors, in different units. They are not repeated on the points: an expanded point links to its field with `tss:field` ([[#expanding]]), and a reasoner derives the observed property, sensor, feature of interest and unit of the point from its field ([[#alignment]]).
+`tss:observedProperty`, `tss:unit`, `tss:sensor` and `tss:featureOfInterest` say what the values of a value field mean. They are stated field by field, so the fields of one source can observe different properties, with different sensors, in different units. They are not repeated on the points: a point links to its field with `tss:field` ([[#point-values]]), and a reasoner derives the observed property, sensor, feature of interest and unit of the point from its field ([[#alignment]]).
 
 `tss:minimum` and `tss:maximum` are the expected range of a numeric field, bounds included, and each of them applies on its own. They are not the range of the values that occur: those are in the stored summary (`tss:observedMinimum`, `tss:observedMaximum`). The range is informative: a value outside it does not make the source non-conforming, and the expansion keeps it. A consumer MAY use the range, for example to flag suspicious readings.
 
 <div class="example" id="example-multi-sensor">
-Several value fields share one time field, each with its own property, unit and sensor. The rows at 08:00 and 08:20 each have two points, one for each value field; the row at 08:10 has no humidity, so it only has a point for the temperature. The source states no `tss:key`, so its key is its time field.
+Several value fields share one time field, each with its own observed property, unit and sensor. Each point states its value field with `tss:field`. The rows at 08:00 and 08:20 each have two points, one for each value field; the row at 08:10 has no humidity, so it only has a point for the temperature. The source states no `tss:key`, so its key is its time field.
 
 ```turtle
 ex:weather-source
@@ -430,12 +425,11 @@ ex:weather-source
         ex:humidity-field .
 
 ex:weather-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:datatype xsd:dateTime .
 
 ex:temperature-field
     a tss:ValueField ;
-    tss:property ex:temperature ;
     tss:datatype xsd:double ;
     tss:observedProperty quantitykind:Temperature ;
     tss:unit unit:DEG_C ;
@@ -444,7 +438,6 @@ ex:temperature-field
 
 ex:humidity-field
     a tss:ValueField ;
-    tss:property ex:humidity ;
     tss:datatype xsd:double ;
     tss:minimum "0"^^xsd:double ;
     tss:maximum "100"^^xsd:double ;
@@ -454,24 +447,29 @@ ex:humidity-field
     tss:featureOfInterest ex:outside-air .
 
 ex:weather-source tss:hasPoint [
+    tss:field ex:temperature-field ;
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-    ex:temperature "18.2"^^xsd:double
+    tss:value "18.2"^^xsd:double
 ], [
+    tss:field ex:humidity-field ;
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-    ex:humidity "61.0"^^xsd:double
+    tss:value "61.0"^^xsd:double
 ] .
 
 ex:weather-source tss:hasPoint [
+    tss:field ex:temperature-field ;
     tss:time "2024-05-12T08:10:00Z"^^xsd:dateTime ;
-    ex:temperature "18.4"^^xsd:double
+    tss:value "18.4"^^xsd:double
 ] .
 
 ex:weather-source tss:hasPoint [
+    tss:field ex:temperature-field ;
     tss:time "2024-05-12T08:20:00Z"^^xsd:dateTime ;
-    ex:temperature "18.9"^^xsd:double
+    tss:value "18.9"^^xsd:double
 ], [
+    tss:field ex:humidity-field ;
     tss:time "2024-05-12T08:20:00Z"^^xsd:dateTime ;
-    ex:humidity "59.5"^^xsd:double
+    tss:value "59.5"^^xsd:double
 ] .
 ```
 
@@ -480,10 +478,10 @@ The three rows hold five points.
 
 ## Describing fields ## {#describing}
 
-A [=Describing Field=] is a meta field that says something about the values of a value field of the same source, in the same row, such as a status or a quality flag. It states that field with `tss:describesField`; it may describe several. Its value is not a point of its own: it is stated, with the describing field's [=Field Property=], on the point of each field it describes in that row. A point of a field that a describing field describes has at most one value for that describing field.
+A [=Describing Field=] is a context field that says something about the values of a value field of the same source, in the same row, such as a status or a quality flag. It states that field with `tss:describesField`; it may describe several. Its value is not a point of its own: it is stated, with the describing field's [=Field Property=], on the point of each field it describes in that row. A point of a field that a describing field describes has at most one value for that describing field.
 
 <div class="example" id="example-describing-field">
-Two series in one embedded source: a value, and a status that describes it. The status is stated on the point of the value.
+Two series in one embedded source: a value, and a status that describes it. The status is stated on the point of the value, with the property `ex:status` of the status field. The source has one value field, so its points leave out `tss:field`.
 
 ```turtle
 ex:two-series-source
@@ -498,31 +496,30 @@ ex:two-series-source
         ex:two-series-status-field .
 
 ex:two-series-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:datatype xsd:dateTime .
 
 ex:two-series-value-field
     a tss:ValueField ;
-    tss:property ex:conductivity ;
     tss:datatype xsd:double ;
     tss:observedProperty quantitykind:ElectricConductivity ;
     tss:unit unit:MicroS-PER-CentiM .
 
 ex:two-series-status-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:property ex:status ;
     tss:datatype xsd:string ;
     tss:describesField ex:two-series-value-field .
 
 ex:two-series-source tss:hasPoint [
     tss:time "2024-05-12T08:00:00Z"^^xsd:dateTime ;
-    ex:conductivity "4810.5"^^xsd:double ;
+    tss:value "4810.5"^^xsd:double ;
     ex:status "ok"^^xsd:string
 ] .
 
 ex:two-series-source tss:hasPoint [
     tss:time "2024-05-12T08:15:00Z"^^xsd:dateTime ;
-    ex:conductivity "4722.4"^^xsd:double ;
+    tss:value "4722.4"^^xsd:double ;
     ex:status "estimated"^^xsd:string
 ] .
 ```
@@ -552,15 +549,16 @@ An [=Embedded Source=] keeps its rows in the metadata. Its class says how they a
 
 ## RDF points ## {#rdf-points}
 
-A `tss:EmbeddedRDFSource` keeps its readings as RDF points. The source links to each [=Point=] with `tss:hasPoint`, and a point is a point of exactly one source. Every node that a source links to with `tss:hasPoint` is a point: its type follows from that link, so a point states no `rdf:type`. It is usually a blank node, written in one statement with the other points of its row, as in <a href="#example-embedded-source">the embedded example</a>; a publisher MAY give it an IRI. Each value of a point is one triple, with the point as subject, the [=Field Property=] of a field as predicate, and as object a literal with the field's `tss:datatype` ([[#datatypes]]):
+A `tss:EmbeddedRDFSource` keeps its readings as RDF points. The source links to each [=Point=] with `tss:hasPoint`, and a point is a point of exactly one source. Every node that a source links to with `tss:hasPoint` is a point: its type follows from that link, so a point states no `rdf:type`. It is usually a blank node, written in one statement with the other points of its row, as in <a href="#example-embedded-source">the embedded example</a>; a publisher MAY give it an IRI. A point states its value field, its time, its reading and the values of the describing fields of its row, each in one triple with the point as subject ([[#point-values]]). Every value is a literal with the `tss:datatype` of its field ([[#datatypes]]):
 
-- A point has exactly one triple with the field property of the time field: the time of its row.
-- A point has exactly one triple with the field property of a value field of its source: its reading. That field is the value field of the point.
-- A point has at most one triple with the field property of each describing field that describes its value field ([[#describing]]), and no triple with the field property of any other field.
-- The points of a source with the same time form one [=Row=]. A row has at most one point for each value field. A row without a point for a value field has an [=Empty Value=] for it, and a point without a triple for a describing field has an empty value for that field. A value with the empty text `""` is no value either.
-- A point MAY state its value field with `tss:field`, which the expansion adds to every point ([[#expanding]]). Every other property of a point SHOULD be a field property of its source: values of other properties are not values of the source.
+- A point has exactly one `tss:field` triple, whose object is a value field of its source: the value field of the point. When the source has exactly one value field, a point MAY leave it out: its value field is then that field. The expansion adds it to every point ([[#expanding]]).
+- A point has exactly one `tss:time` triple: the time of its row, the value of the time field.
+- A point has exactly one `tss:value` triple: its reading, the value of its value field.
+- A point has at most one triple with the [=Field Property=] of each describing field that describes its value field ([[#describing]]), and no triple with the field property of any other describing field.
+- The points of a source with the same time form one [=Row=]. A row has at most one point for each value field: no two points of a source have the same value field and the same time. A row without a point for a value field has an [=Empty Value=] for it, and a point without a triple for a describing field has an empty value for that field. A value with the empty text `""` is no value either.
+- A point SHOULD have no other triples: values of other properties are not values of the source.
 
-No property of a point has a meaning of its own: the field whose field property it is says what each value means.
+What the reading of a point means is stated once, on its value field ([[#meaning]]), and what the value of a describing field means, on that describing field.
 
 The metadata document of a [=Growing Source=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the sources and their fields, and every next message holds one row: the points of one time. A [=Write=] then adds a row by appending one message ([[#updating]]). When the source states `tss:rangeRequests true`, a consumer reads the new rows without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two rows are never the same node. A writer MUST end every message of the log of a growing source with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]]. The log follows the RDF Message Stream Profile of this specification ([[#message-profile]]).
 
@@ -597,7 +595,7 @@ ex:json-source
       ]"""^^rdf:JSON .
 
 ex:json-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:columnName "time" ;
     tss:datatype xsd:dateTime .
 
@@ -607,7 +605,7 @@ ex:json-value-field
     tss:datatype xsd:double .
 ```
 
-The keys of the rows are the fields' `tss:columnName`. The source states no `tss:key`, so its key is its time field. The value field states no `tss:property`, so its field property is the default: the IRI of the metadata document with the fragment `#value`.
+The keys of the rows are the fields' `tss:columnName`. The source states no `tss:key`, so its key is its time field. Expanded, each row is one point, which states its reading with `tss:value` ([[#expanding]]).
 </div>
 
 # External data files # {#data-files}
@@ -639,7 +637,7 @@ ex:csv-source
         ex:csv-value-field .
 
 ex:csv-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:columnName "time" ;
     tss:datatype xsd:dateTime .
 
@@ -672,7 +670,7 @@ ex:headerless-source
         ex:headerless-value-field .
 
 ex:headerless-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:columnName "time" ;
     tss:columnIndex 0 ;
     tss:datatype xsd:dateTime .
@@ -812,11 +810,11 @@ ex:grid-source
         ex:grid-value-field .
 
 ex:grid-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:datatype xsd:dateTime .
 
 ex:grid-step-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:columnName "step" ;
     tss:datatype xsd:integer .
 
@@ -855,7 +853,7 @@ ex:position-source
         ex:position-value-field .
 
 ex:position-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:datatype xsd:dateTime .
 
 ex:position-value-field
@@ -901,7 +899,7 @@ ex:delta-source
         ex:delta-value-field .
 
 ex:delta-time-field
-    a tss:MetaField ;
+    a tss:ContextField ;
     tss:columnName "time" ;
     tss:datatype xsd:dateTime .
 
@@ -1004,30 +1002,26 @@ A source of any class can be expanded into its points as RDF, in the shape of th
 2. Keep the rows whose time lies in the [=Time Window=]. A row without a time is an error.
 3. For each row, and for each value field that has a value in it, make one point. The point is the RDF point itself for a `tss:EmbeddedRDFSource`, the IRI that `tss:aboutUrl` makes ([[#point-iris]]) when the value field states one, and a new blank node otherwise. Add:
     - the link from the source: the source `tss:hasPoint` the point;
-    - the link to its value field: the point `tss:field` the field;
-    - the time: the [=Field Property=] of the time field, with the time of the row as a literal with the time field's `tss:datatype`. On a [=Time Grid=], that is the time of the row's step;
-    - the reading: the field property of the value field, with the [=Decoded Value=] as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`. A value without a value encoding keeps its text as written;
+    - the link to its value field: the point `tss:field` the field, also when the source has one value field;
+    - the time: `tss:time`, with the time of the row as a literal with the time field's `tss:datatype`. On a [=Time Grid=], that is the time of the row's step;
+    - the reading: `tss:value`, with the [=Decoded Value=] as a literal with the field's `tss:datatype`, or with its `tss:language` for `rdf:langString`. A value without a value encoding keeps its text as written;
     - for each describing field that describes the value field and has a value in the row, its field property with that value.
 4. A value that is not in the lexical form of its datatype is an error.
-5. For each field of the source that states no `tss:property`, add its default property: the field `tss:property` the default property. For a value field, also add that its default property is `rdfs:subPropertyOf` `tss:value` ([[#field-properties]]). A property that a field states itself gets no such statement: what it means is up to its own vocabulary.
+5. For each describing field of the source that states no `tss:property`, add its default property: the field `tss:property` the default property ([[#point-values]]).
 
 A document with several sources is expanded source by source: the points of a source only link to that source and its fields.
 
-Note: The expansion keeps every value of a value field and of a describing field. The values of the other meta fields, such as the step field or an identifier, are not stated on the points, though an identifier may be part of the IRI of a point ([[#point-iris]]).
+Note: The expansion keeps every value of a value field and of a describing field. The values of the other context fields, such as the step field or an identifier, are not stated on the points, though an identifier may be part of the IRI of a point ([[#point-iris]]).
 
 <div class="example" id="example-expanded-csv">
-The first row of <a href="#example-csv-source">the CSV example</a>, expanded. The time field and the value field state no `tss:property`, so their field properties are the defaults:
+The first row of <a href="#example-csv-source">the CSV example</a>, expanded:
 
 ```turtle
 ex:csv-source tss:hasPoint [
     tss:field ex:csv-value-field ;
     tss:time "2024-05-01T00:00:00Z"^^xsd:dateTime ;
-    <https://example.org/data.csv#value> "12.5"^^xsd:double
+    tss:value "12.5"^^xsd:double
 ] .
-
-ex:csv-time-field tss:property tss:time .
-ex:csv-value-field tss:property <https://example.org/data.csv#value> .
-<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value .
 ```
 </div>
 
@@ -1050,7 +1044,7 @@ ex:csv-value-field tss:property <https://example.org/data.csv#value> .
 </tbody>
 </table>
 
-The default property of every value field is a subproperty of `tss:value`, and so is the property of a value field whose publisher states it ([[#field-properties]]): their readings are results in SOSA and values in SAREF. A property that a publisher does not align keeps its own meaning, and only the rest of the point is derived. The observed property, sensor, feature of interest and unit are stated once, on the field, and reach each point through `tss:field`. Property chains are part of OWL 2 RL [[OWL2-PROFILES]], so a rule reasoner can derive them. From <a href="#example-expanded-point">the expanded point of the embedded example</a>, it derives:
+Every point states its reading with `tss:value` ([[#point-values]]), so every reading is a result in SOSA and a value in SAREF. The observed property, sensor, feature of interest and unit are stated once, on the field, and reach each point through `tss:field`, which every expanded point states ([[#expanding]]). Property chains are part of OWL 2 RL [[OWL2-PROFILES]], so a rule reasoner can derive them. From <a href="#example-expanded-point">the expanded point of the embedded example</a>, it derives:
 
 <div class="example" id="example-derived-observation">
 ```turtle
@@ -1071,6 +1065,8 @@ and the same with SAREF terms.
 </div>
 
 The values of describing fields are not aligned: they say something about a reading, and are not results of their own.
+
+Note: The alignment does not give a point a property of a domain vocabulary, such as `ex:temperature` for the readings of the temperature field of <a href="#example-multi-sensor">the multi-sensor example</a>. OWL cannot derive one: the values of `tss:value` are literals, and a property chain in OWL 2 only follows object properties. A rule language can, such as N3 or a SPARQL `CONSTRUCT` query. In N3: `{ ?point tss:field ex:temperature-field ; tss:value ?value } => { ?point ex:temperature ?value } .`
 
 # Adding rows to a growing source # {#updating}
 
@@ -1104,7 +1100,7 @@ A new row for <a href="#example-embedded-source">the embedded example</a>, appen
 ```turtle
 ex:source tss:hasPoint [
     tss:time "2024-05-12T10:00:00Z"^^xsd:dateTime ;
-    ex:conductivity "4766.2"^^xsd:double
+    tss:value "4766.2"^^xsd:double
 ] .
 MESSAGE
 ```
@@ -1218,7 +1214,7 @@ A stream that follows this profile holds three kinds of messages:
 <tr><th>Message</th><th>What it holds</th><th>Focus nodes</th><th>Timestamp</th></tr>
 </thead>
 <tbody>
-<tr><td>description message</td><td>the description of one or more sources and their fields, as in a metadata document, without points; in an expansion, also the default field properties of [[#expanding]], step 5</td><td>each source: the subject of an <code>rdf:type</code> that is a source class</td><td>none</td></tr>
+<tr><td>description message</td><td>the description of one or more sources and their fields, as in a metadata document, without points; in an expansion, also the default field properties of its describing fields ([[#expanding]], step 5)</td><td>each source: the subject of an <code>rdf:type</code> that is a source class</td><td>none</td></tr>
 <tr><td>row message</td><td>one [=Row=] of one source: the source links with <code>tss:hasPoint</code> to one point for each value field that has a value in the row ([[#rdf-points]])</td><td>each point: an object of <code>tss:hasPoint</code></td><td>the time of the row</td></tr>
 <tr><td>ending message</td><td><code>tss:immutable true</code> for a source, and optionally the [=Stored Summaries=] of its fields ([[#ending]])</td><td>the source</td><td>none</td></tr>
 </tbody>
@@ -1226,7 +1222,7 @@ A stream that follows this profile holds three kinds of messages:
 
 - The messages of a source are not independent: a row message is read with the description of its source, as RDF Messages allows a profile to say. The description message of a source MUST come before its row messages, and its ending message after them. A consumer that starts reading a stream after its description message needs the description from elsewhere, such as from the start of the RDF Message Log.
 - A row message holds exactly one row of exactly one source, and nothing else. The points of a row all have the same time.
-- The timestamp of a row message is the time of its row: on each of its points, the object of the [=Field Property=] of the time field. That is `tss:time` unless the time field states another `tss:property`, so that an engine usually finds it without the description message. `tss:time` is a subproperty of `sosa:resultTime` ([[#alignment]]), the property that RDF Messages suggests to assume as the timestamp of SOSA observations.
+- The timestamp of a row message is the time of its row: on each of its points, the object of `tss:time`, so that an engine finds it without the description message. `tss:time` is a subproperty of `sosa:resultTime` ([[#alignment]]), the property that RDF Messages suggests to assume as the timestamp of SOSA observations.
 - The order of the messages is the order in which the rows were written, which need not be the order of their times. An engine orders rows by their timestamp.
 - Every message ends with a message delimiter, as [[#rdf-points]] requires for the log of a growing source.
 
@@ -1254,21 +1250,17 @@ ex:csv-source a tss:CSVSource ;
     tss:timeField ex:csv-time-field ;
     tss:hasField ex:csv-time-field, ex:csv-value-field .
 # ... and the rest of the description of the source and its fields
-
-ex:csv-time-field tss:property tss:time .
-ex:csv-value-field tss:property <https://example.org/data.csv#value> .
-<https://example.org/data.csv#value> rdfs:subPropertyOf tss:value .
 MESSAGE
 ex:csv-source tss:hasPoint [
     tss:field ex:csv-value-field ;
     tss:time "2024-05-01T00:00:00Z"^^xsd:dateTime ;
-    <https://example.org/data.csv#value> "12.5"^^xsd:double
+    tss:value "12.5"^^xsd:double
 ] .
 MESSAGE
 ex:csv-source tss:hasPoint [
     tss:field ex:csv-value-field ;
     tss:time "2024-05-01T00:15:00Z"^^xsd:dateTime ;
-    <https://example.org/data.csv#value> "12.7"^^xsd:double
+    tss:value "12.7"^^xsd:double
 ] .
 MESSAGE
 ```
@@ -1289,7 +1281,7 @@ An engine takes the timestamp of each row message from `tss:time`, and its focus
 <tr><td><code>tss:Source</code></td><td>class</td><td>-</td><td>[[#the-source]]</td></tr>
 <tr><td><code>tss:EmbeddedJSONSource</code>, <code>tss:EmbeddedRDFSource</code>, <code>tss:ParquetSource</code>, <code>tss:CSVSource</code>, <code>tss:ArrowSource</code></td><td>class, subclass of <code>tss:Source</code></td><td>-</td><td>[[#storage]]</td></tr>
 <tr><td><code>tss:Field</code></td><td>class</td><td>-</td><td>[[#fields]]</td></tr>
-<tr><td><code>tss:ValueField</code>, <code>tss:MetaField</code></td><td>class, subclass of <code>tss:Field</code></td><td>-</td><td>[[#field-kinds]]</td></tr>
+<tr><td><code>tss:ValueField</code>, <code>tss:ContextField</code></td><td>class, subclass of <code>tss:Field</code></td><td>-</td><td>[[#field-kinds]]</td></tr>
 <tr><td><code>tss:Point</code></td><td>class</td><td>-</td><td>[[#rdf-points]], [[#expanding]]</td></tr>
 <tr><td><code>tss:Summary</code></td><td>class</td><td>-</td><td>[[#summaries]]</td></tr>
 <tr><td><code>tss:MissingValuePolicy</code>, <code>tss:ValueEncoding</code></td><td>class</td><td>-</td><td>[[#summaries]], [[#value-encoding]]</td></tr>
@@ -1302,7 +1294,7 @@ An engine takes the timestamp of each row message from `tss:time`, and its focus
 <tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>source</td><td>[[#window]]</td></tr>
 <tr><td><code>tss:hasPoint</code></td><td>property</td><td><code>tss:EmbeddedRDFSource</code>, and any source when expanded</td><td>[[#rdf-points]], [[#expanding]]</td></tr>
 <tr><td><code>tss:field</code></td><td>property</td><td>point</td><td>[[#rdf-points]], [[#expanding]]</td></tr>
-<tr><td><code>tss:time</code>, <code>tss:value</code></td><td>property</td><td>point</td><td>[[#field-properties]], [[#alignment]]</td></tr>
+<tr><td><code>tss:time</code>, <code>tss:value</code></td><td>property</td><td>point</td><td>[[#point-values]], [[#alignment]]</td></tr>
 <tr><td><code>tss:points</code></td><td>property</td><td><code>tss:EmbeddedJSONSource</code></td><td>[[#json-points]]</td></tr>
 <tr><td><code>tss:dataFile</code></td><td>property</td><td>external source</td><td>[[#data-files]]</td></tr>
 <tr><td><code>tss:delimiter</code>, <code>tss:header</code>, <code>tss:encoding</code></td><td>property</td><td><code>tss:CSVSource</code></td><td>[[#csv]]</td></tr>
@@ -1310,7 +1302,7 @@ An engine takes the timestamp of each row message from `tss:time`, and its focus
 <tr><td><code>tss:producedBy</code>, <code>tss:sourceDescription</code></td><td>property</td><td>source</td><td>[[#provenance]]</td></tr>
 <tr><td><code>tss:columnName</code>, <code>tss:columnIndex</code>, <code>tss:datatype</code>, <code>tss:language</code>, <code>tss:minimum</code>, <code>tss:maximum</code></td><td>property</td><td>field</td><td>[[#fields]], [[#datatypes]]</td></tr>
 <tr><td><code>tss:valueEncoding</code>, <code>tss:baseline</code></td><td>property</td><td>field of an external source</td><td>[[#value-encoding]]</td></tr>
-<tr><td><code>tss:property</code></td><td>property</td><td>field</td><td>[[#field-properties]]</td></tr>
+<tr><td><code>tss:property</code></td><td>property</td><td>describing field</td><td>[[#point-values]]</td></tr>
 <tr><td><code>tss:aboutUrl</code></td><td>property</td><td>value field</td><td>[[#point-iris]]</td></tr>
 <tr><td><code>tss:observedProperty</code>, <code>tss:unit</code>, <code>tss:sensor</code>, <code>tss:featureOfInterest</code></td><td>property</td><td>field</td><td>[[#meaning]]</td></tr>
 <tr><td><code>tss:describesField</code>, <code>tss:fieldDescription</code></td><td>property</td><td>field</td><td>[[#describing]]</td></tr>
@@ -1330,10 +1322,10 @@ Everything in this specification is normative, except the sections marked as inf
 This specification defines four conformance classes:
 
 : <dfn export>Conforming metadata document</dfn>
-:: An RDF document that describes at least one source and meets every requirement in this specification on a metadata document, a source, a field and its field property, embedded rows and points, and a stored summary. For an external source, this includes the requirements on the properties that describe the data file, its [=Time Grid=] and its value encoding, but not on the contents of the data file.
+:: An RDF document that describes at least one source and meets every requirement in this specification on a metadata document, a source, a field, the field property of a describing field, embedded rows and points, and a stored summary. For an external source, this includes the requirements on the properties that describe the data file, its [=Time Grid=] and its value encoding, but not on the contents of the data file.
 : <dfn export>Conforming data</dfn>
 :: The rows of a source, embedded or in its data file, that meet the requirements on rows and points: the time of every row (on a [=Time Grid=], its step), the key, the lexical form of the values, the [=Time Window=], and the IRIs of the points. The rows of an embedded source are part of its metadata document; the rows of a data file are not.
 : <dfn export>Conforming consumer</dfn>
-:: Software that reads a conforming metadata document and its data as this specification says: it selects the rules for each source by its class, reads the rows as [[#points]] or [[#data-files]] says, finds the [=Field Property=] of each field as [[#field-properties]] says, reads the times as [[#times]] says, decodes the values of a field with a value encoding ([[#value-encoding]]), applies the [=Time Window=] and the [=Empty Value=] rules, and reports an error where this specification calls something an error. When it follows a [=Growing Source=], it does so as [[#following]] says. A <dfn export>conforming expander</dfn> is a conforming consumer that also expands a source into points as [[#expanding]] says.
+:: Software that reads a conforming metadata document and its data as this specification says: it selects the rules for each source by its class, reads the rows as [[#points]] or [[#data-files]] says, finds the [=Field Property=] of each describing field as [[#point-values]] says, reads the times as [[#times]] says, decodes the values of a field with a value encoding ([[#value-encoding]]), applies the [=Time Window=] and the [=Empty Value=] rules, and reports an error where this specification calls something an error. When it follows a [=Growing Source=], it does so as [[#following]] says. A <dfn export>conforming expander</dfn> is a conforming consumer that also expands a source into points as [[#expanding]] says.
 : <dfn export>Conforming writer</dfn>
 :: Software that changes the rows of an [=Embedded Source=] only by the [=Write=] of [[#updating-embedded]], that only appends to the data file of a [=Growing Source=] as [[#appending-data-files]] says, that ends a growing source as [[#ending]] says, and that leaves a conforming metadata document conforming after every change.
