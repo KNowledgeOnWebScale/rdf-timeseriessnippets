@@ -46,7 +46,7 @@ With RDF Time Series Sources, a publisher keeps the readings compact and describ
 - Each field states the datatype of its values and, for a data file or JSON rows, its column name. It also has a [=Field Property=]: the RDF property that states its values, which by default is made from its column name, as in CSVW [[TABULAR-METADATA]]. Optionally, a value field states what it observes, in which unit, with which sensor, of which feature of interest.
 - A data file can give the time of each row as a step on a regular [=Time Grid=], and state the values of a field as differences from a baseline (`tss:valueEncoding`).
 
-The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a source to which readings are still added, and only fetch the new readings with HTTP Range requests ([[#following]]). Streamed as RDF messages, the readings follow the RDF Message Stream Profile of this specification ([[#message-profile]]).
+The metadata also states the [=Time Window=] of the readings, whether readings may still be added, and an optional [=Stored Summary=] of each field. A consumer can follow a source to which readings are still added. When the publisher enables it, the consumer only fetches the new readings, with HTTP Range requests ([[#following]]). Streamed as RDF messages, the readings follow the RDF Message Stream Profile of this specification ([[#message-profile]]).
 
 Every source can be expanded into its points as RDF, in the same shape as the points of a `tss:EmbeddedRDFSource` ([[#expanding]]). This specification does not map the points onto another vocabulary: the TSS vocabulary is aligned with SOSA [[VOCAB-SSN]] and SAREF [[SAREF]], so that a reasoner can derive their observations and measurements from the points when they are needed ([[#alignment]]).
 
@@ -64,7 +64,7 @@ Note: Earlier drafts of this specification were called RDF Time Series Snippets.
 
 ## Embedded example ## {#embedded-example}
 
-This example is a complete [=Embedded Source=]: five conductivity readings of one sensor, embedded in the metadata as RDF points. Readings may still be added to it: it does not state `tss:immutable true`. It is therefore written as an RDF Message Log [[RDF-MESSAGES]]: the first message describes the source and its fields, and each next message holds one row. A writer adds a row by appending one message ([[#updating]]), and a consumer that follows the source only fetches the messages it has not read yet ([[#following]]).
+This example is a complete [=Embedded Source=]: five conductivity readings of one sensor, embedded in the metadata as RDF points. Readings may still be added to it: it does not state `tss:immutable true`. It is therefore written as an RDF Message Log [[RDF-MESSAGES]]: the first message describes the source and its fields, and each next message holds one row. A writer adds a row by appending one message ([[#updating]]). The source states `tss:rangeRequests true`: its publisher promises that the document only grows, byte for byte, so a consumer that follows the source only fetches the messages it has not read yet ([[#following]]).
 
 <div class="example" id="example-embedded-source">
 ```turtle
@@ -80,6 +80,7 @@ PREFIX ex: <https://example.org/ex#>
 ex:source
     a tss:EmbeddedRDFSource ;
     rdfs:label "Conductivity readings"@en ;
+    tss:rangeRequests true ;
     tss:producedBy ex:producer ;
     tss:from "2024-05-12T08:00:00Z"^^xsd:dateTime ;
     tss:until "2024-05-13T00:00:00Z"^^xsd:dateTime ;
@@ -211,7 +212,8 @@ A metadata document MUST describe at least one source. Each source in the docume
 <tr><th>Property</th><th>Value</th><th>External source</th><th>Embedded source</th></tr>
 </thead>
 <tbody>
-<tr><td><code>tss:immutable</code></td><td><code>xsd:boolean</code></td><td>optional; default <code>false</code>; required with value <code>true</code> for a <code>tss:ParquetSource</code> and for a <code>tss:ArrowSource</code> in the Arrow IPC file format</td><td>optional; default <code>false</code></td></tr>
+<tr><td><code>tss:immutable</code></td><td><code>xsd:boolean</code></td><td>optional; default <code>false</code></td><td>optional; default <code>false</code></td></tr>
+<tr><td><code>tss:rangeRequests</code></td><td><code>xsd:boolean</code></td><td>optional; default <code>false</code>; <code>true</code> only for a <code>tss:CSVSource</code>, or a <code>tss:ArrowSource</code> in the IPC streaming format</td><td>optional; default <code>false</code>; <code>true</code> only for a <code>tss:EmbeddedRDFSource</code></td></tr>
 <tr><td><code>tss:hasField</code></td><td>a <code>tss:Field</code></td><td>required, one or more</td><td>required, one or more</td></tr>
 <tr><td><code>tss:timeField</code></td><td>one of its fields</td><td>required</td><td>required</td></tr>
 <tr><td><code>tss:key</code></td><td>its time field</td><td>optional; default: the time field</td><td>optional; default: the time field</td></tr>
@@ -293,9 +295,7 @@ A source that states `tss:immutable true` MUST NOT become a growing source again
 
 While a source is growing, its description does not change: a [=Write=] only adds rows. Its class, its fields, its [=Time Window=], its data file and its [=Time Grid=] MUST stay as they are. The only statements that are added to its description are `tss:immutable true` and the [=Stored Summaries=] of its fields, at the moment the writer ends the source ([[#ending]]). Every row that is added MUST lie in the time window: a writer that has readings outside of it starts a new source.
 
-A consumer learns that rows were added by fetching the source again, and fetches only the new rows with HTTP Range requests where the serialisation allows it ([[#following]]).
-
-Some data files cannot be appended to, so their sources are always immutable: a `tss:ParquetSource` MUST state `tss:immutable true`, and so MUST a `tss:ArrowSource` whose data file is in the Arrow IPC file format ([[#arrow]]).
+A consumer learns that rows were added by fetching the source again. By default, it reads the whole document or data file again. When the source states `tss:rangeRequests true`, it fetches only the new bytes, with HTTP Range requests ([[#range-opt-in]], [[#following]]).
 
 Note: Earlier drafts stated `tss:mutable` and `tss:committedUntil`. `tss:mutable true` is now the default, `tss:mutable false` is `tss:immutable true`, and a consumer finds out whether a growing source changed with HTTP validators (`ETag`, `Last-Modified`) instead of `tss:committedUntil` ([[#following]]).
 
@@ -562,7 +562,7 @@ A `tss:EmbeddedRDFSource` keeps its readings as RDF points. The source links to 
 
 No property of a point has a meaning of its own: the field whose field property it is says what each value means.
 
-The metadata document of a [=Growing Source=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the sources and their fields, and every next message holds one row: the points of one time. A [=Write=] then adds a row by appending one message ([[#updating]]), and a consumer reads the new rows without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two rows are never the same node. A writer MUST end every message of the log of a growing source with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]]. The log follows the RDF Message Stream Profile of this specification ([[#message-profile]]).
+The metadata document of a [=Growing Source=] of this class MUST be an RDF Message Log [[RDF-MESSAGES]], such as Turtle or TriG that announces the version label `1.2-messages`. Its first message describes the sources and their fields, and every next message holds one row: the points of one time. A [=Write=] then adds a row by appending one message ([[#updating]]). When the source states `tss:rangeRequests true`, a consumer reads the new rows without reading the document again ([[#following]]). The metadata document is read as the RDF merge of its messages: since blank node identifiers are scoped to the message they occur in, the blank nodes of two rows are never the same node. A writer MUST end every message of the log of a growing source with a message delimiter (`MESSAGE`, or `@message .`), so a consumer can tell a complete message from one that is still being written. A delimiter right before the end of the document does not start a new message [[RDF-MESSAGES]]. The log follows the RDF Message Stream Profile of this specification ([[#message-profile]]).
 
 ## JSON rows ## {#json-points}
 
@@ -696,7 +696,7 @@ The data file, relative to the metadata document:
 
 The data file of a `tss:ParquetSource` is an [Apache Parquet](https://parquet.apache.org/docs/file-format/) file, read by its column names: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Parquet types in the file. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Parquet type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. A Parquet NULL is an [=Empty Value=]. A column of a Parquet type that is not in the table is not supported by this specification.
 
-A Parquet file ends with a footer that indexes its row groups, so rows cannot be appended to it. A `tss:ParquetSource` is therefore never a [=Growing Source=]: it MUST state `tss:immutable true`. A producer that keeps adding readings uses a CSV source or an Arrow source in the IPC streaming format instead, and can publish the readings as a Parquet source once no readings are added any more.
+A Parquet file ends with a footer that indexes its row groups, so rows cannot be appended to it in place. A growing `tss:ParquetSource` is rewritten as a whole when readings are added, and consumers read it again as a whole: it cannot state `tss:rangeRequests true` ([[#range-opt-in]]). A producer that wants consumers to fetch only the new readings uses a CSV source, or an Arrow source in the IPC streaming format, instead.
 
 <table class="data">
 <thead>
@@ -732,10 +732,10 @@ ex:parquet-source
 
 The data file of a `tss:ArrowSource` is written in one of the two IPC formats of Apache Arrow [[ARROW-IPC]]:
 
-- the [IPC streaming format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format): a schema message, followed by dictionary batches and record batches, and optionally an end-of-stream marker. A stream can be appended to, so it is the format of a [=Growing Source=]. Its media type is `application/vnd.apache.arrow.stream`, and its file extension is usually `.arrows`.
-- the [IPC file format](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format): the same messages between the magic string `ARROW1` at the start and a footer at the end that indexes the record batches. Every append would rewrite the footer, so a source in the file format MUST state `tss:immutable true`. Its media type is `application/vnd.apache.arrow.file`, and its file extension is usually `.arrow`.
+- the [IPC streaming format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format): a schema message, followed by dictionary batches and record batches, and optionally an end-of-stream marker. A stream can be appended to in place, so it is the format of a growing source that states `tss:rangeRequests true` ([[#range-opt-in]]). Its media type is `application/vnd.apache.arrow.stream`, and its file extension is usually `.arrows`.
+- the [IPC file format](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format): the same messages between the magic string `ARROW1` at the start and a footer at the end that indexes the record batches. Every append rewrites the footer, so a growing source in the file format is rewritten as a whole, and cannot state `tss:rangeRequests true`. Its media type is `application/vnd.apache.arrow.file`, and its file extension is usually `.arrow`.
 
-The data file of a growing `tss:ArrowSource` MUST be in the IPC streaming format. The data file of an immutable one MAY be in either format. A consumer tells them apart by the first bytes of the file, not by its extension or media type: a file in the IPC file format starts with the 6 bytes `ARROW1`, a stream starts with the continuation marker `0xFFFFFFFF`. A server SHOULD serve the data file with the media type of its format.
+The data file of an Arrow source that states `tss:rangeRequests true` MUST be in the IPC streaming format. The data file of any other Arrow source MAY be in either format. A consumer tells them apart by the first bytes of the file, not by its extension or media type: a file in the IPC file format starts with the 6 bytes `ARROW1`, a stream starts with the continuation marker `0xFFFFFFFF`. A server SHOULD serve the data file with the media type of its format.
 
 The data file is read by its column names, as a Parquet file is: a field's column is the column whose name is its `tss:columnName`. `tss:delimiter`, `tss:encoding` and `tss:header` have no effect on it. The values keep their Arrow types in the file, and a dictionary-encoded column is read as the values it encodes. To check a value against the field's datatype, the value is written in the lexical form that the table below gives for the Arrow type of its column, and the field's `tss:datatype` MUST be one of the datatypes the table allows for that type. An Arrow null is an [=Empty Value=]. A column of an Arrow type that is not in the table is not supported by this specification.
 
@@ -759,7 +759,7 @@ The data file is read by its column names, as a Parquet file is: a field's colum
 </table>
 
 <div class="example" id="example-arrow-source">
-The class and the data file of two Arrow sources: an immutable one in the IPC file format, and a growing one in the IPC streaming format, to which record batches are still appended ([[#appending-data-files]]).
+The class and the data file of two Arrow sources: an immutable one in the IPC file format, and a growing one in the IPC streaming format, to which record batches are still appended, and which consumers follow with Range requests ([[#appending-data-files]]).
 
 ```turtle
 ex:arrow-source
@@ -769,6 +769,7 @@ ex:arrow-source
 
 ex:arrow-stream-source
     a tss:ArrowSource ;
+    tss:rangeRequests true ;
     tss:dataFile <https://example.org/live.arrows> .
 ```
 </div>
@@ -1073,13 +1074,19 @@ The values of describing fields are not aligned: they say something about a read
 
 # Adding rows to a growing source # {#updating}
 
-A [=Growing Source=] is append-only: rows are added, and an existing row or point is never changed or removed. Every serialisation of its rows only grows. A representation that a server returned, without content coding, MUST be a byte prefix of every later representation of the same resource in the same media type, as long as the resource is served at that IRI:
+A [=Growing Source=] is append-only: rows are added, and an existing row or point is never changed or removed. Its rows only grow, but by default the bytes that hold them need not: a publisher MAY write its metadata document or data file anew on every change, for example to compress, sort or re-serialise it, as long as it holds the same rows and the new ones. A consumer then reads the whole document or data file again ([[#following-full]]).
+
+## Opting in to Range requests ## {#range-opt-in}
+
+A source that states `tss:rangeRequests true` promises more: the bytes that hold its rows only grow, so a consumer can fetch only the new bytes with HTTP Range requests ([[#range-requests]]), instead of reading the whole document or data file again on every change. While the source is growing, a representation that a server returned, without content coding, MUST then be a byte prefix of every later representation of the same resource in the same media type, as long as the resource is served at that IRI. This applies to:
 
 - the metadata document of a `tss:EmbeddedRDFSource`, an RDF Message Log ([[#rdf-points]]);
 - the data file of a `tss:CSVSource` ([[#appending-data-files]]);
-- the data file of a `tss:ArrowSource`, in the IPC streaming format ([[#arrow]]).
+- the data file of a `tss:ArrowSource`, which MUST then be in the IPC streaming format ([[#arrow]]).
 
-The `tss:points` literal of a `tss:EmbeddedJSONSource` is rewritten on every [=Write=], so its document does not only grow; its rows do ([[#updating-embedded]]). A producer that has to rewrite earlier bytes, for example to compact or correct the data, publishes the result as a new source, under a new IRI.
+Only these sources MAY state `tss:rangeRequests true`. The data file of a Parquet source, or of an Arrow source in the IPC file format, is rewritten on every append, and the `tss:points` literal of a `tss:EmbeddedJSONSource` is rewritten on every [=Write=]. Like the rest of the description of a growing source, `tss:rangeRequests` does not change while the source grows ([[#change]]). Its server SHOULD answer Range requests for the resource [[RFC9110]].
+
+The promise is about the bytes as they are stored and served. A server MAY still compress a response with an HTTP content coding, as byte ranges then count the bytes without content coding ([[#range-requests]]). The resource itself MUST NOT be compressed as a whole, such as in a `.csv.gz` file: compressing the file again after an append rewrites earlier bytes, so a consumer would have to process the whole file again. A producer that has to rewrite earlier bytes, for example to compress, compact or correct the data, does not state `tss:rangeRequests true`, or publishes the result as a new source, under a new IRI.
 
 ## Embedded sources ## {#updating-embedded}
 
@@ -1107,11 +1114,12 @@ The new row lies in the window, which stays as it is. In <a href="#example-json-
 
 ## Data files ## {#appending-data-files}
 
-The data file of a growing [=External Source=] only grows: rows are appended to it, and no row is changed or removed. How a producer writes to the file is outside this specification, but the file MUST meet these rules after every append, so a consumer can read the new rows on their own ([[#following]]):
+Rows are added to the data file of a growing [=External Source=], and no row is changed or removed. How a producer writes to the file is outside this specification. By default, it MAY write the whole file anew, in any format of its class. A file that a consumer reads MUST hold complete rows only: a CSV file ends with a line break, and an Arrow stream ends with a complete encapsulated message.
 
-- **CSV:** a writer appends complete records only, and ends every record with a line break, so the file always ends with a line break. The header line and the earlier records MUST NOT change. A record that is not followed by a line break yet, is still being written. The data file of a growing CSV source SHOULD NOT be compressed as a whole, such as in a `.csv.gz` file, because then the new rows cannot be read on their own; a server MAY still compress it with an HTTP content coding.
+When the source states `tss:rangeRequests true` ([[#range-opt-in]]), the producer appends to the file in place, and the file MUST meet these rules after every append, so a consumer can read the new rows on their own ([[#range-requests]]):
+
+- **CSV:** a writer appends complete records only, and ends every record with a line break. The header line and the earlier records MUST NOT change. A record that is not followed by a line break yet, is still being written.
 - **Arrow:** the data file is in the IPC streaming format ([[#arrow]]). A writer appends complete encapsulated messages only: record batches, and dictionary batches, including delta dictionary batches, when a dictionary-encoded column needs new values. The schema message at the start of the stream MUST NOT change. A writer MUST NOT write the end-of-stream marker while the source is growing.
-- **Parquet**, and Arrow in the IPC file format, cannot be appended to: such a source is never growing ([[#parquet]], [[#arrow]]).
 
 The time of a new row MUST lie in the [=Time Window=] of the source. On a [=Time Grid=], `tss:timeBase` and `tss:timeStep` do not change, so new rows continue the steps of the grid. Without a [=Step Field=], a new row is at the step of its position, so a writer appends a row for every step, with empty values for a step without readings.
 
@@ -1144,7 +1152,7 @@ A consumer that reads `tss:immutable true` reads the rest of the rows once more,
 
 # Following a growing source # {#following}
 
-A consumer that follows a [=Growing Source=] reads its rows, and later reads the rows that were added since. This section says how it finds out that rows were added, and how it fetches only the new ones over HTTP [[RFC9110]]. A source usually holds a whole time series ([[#intro]]). When a producer still spreads a series over several sources, finding them and moving on to the next one are left to a collection that contains them, such as the pages of a [Linked Data Event Stream](https://w3id.org/ldes/specification).
+A consumer that follows a [=Growing Source=] reads its rows, and later reads the rows that were added since. This section says how it finds out that rows were added over HTTP [[RFC9110]], how it reads them by default, and how it fetches only the new ones when the publisher enables Range requests. A source usually holds a whole time series ([[#intro]]). When a producer still spreads a series over several sources, finding them and moving on to the next one are left to a collection that contains them, such as the pages of a [Linked Data Event Stream](https://w3id.org/ldes/specification).
 
 ## Polling and caching ## {#polling}
 
@@ -1152,9 +1160,20 @@ A publisher of a growing source SHOULD send an `ETag` or a `Last-Modified` heade
 
 A consumer of an [=External Source=] polls its metadata document and its data file each on its own. When the metadata document states `tss:immutable true`, all rows are in the data file ([[#ending]]): the consumer reads the data file once more, and stops.
 
+## Reading the whole resource again ## {#following-full}
+
+By default, a consumer that follows a growing source reads its metadata document, or its data file, again as a whole when it changed:
+
+1. It asks for the resource with a conditional request ([[#polling]]). A `304 Not Modified` means that nothing was added.
+2. On `200 OK`, it reads all rows of the new representation, and emits the rows it has not emitted before. The [=Key=] identifies a row: a row whose time it has emitted already is not emitted again.
+
+A consumer MAY save work where the source keeps its rows in order. The existing objects of the `tss:points` of a `tss:EmbeddedJSONSource` do not change and stay in the same order ([[#updating-embedded]]): when the consumer has read *n* objects, it emits the objects after the first *n*, and only when the first *n* objects are not the ones it read, it compares all rows by their key.
+
+This works for every source, but costs a full download and a full read on every change. A publisher that wants to spare its consumers that, states `tss:rangeRequests true` ([[#range-opt-in]]).
+
 ## Reading only the new bytes ## {#range-requests}
 
-The RDF Message Log of a growing `tss:EmbeddedRDFSource`, and the data file of a growing `tss:CSVSource` or `tss:ArrowSource`, only grow ([[#updating]]). A consumer then does not download them again, but asks for the bytes after the ones it has read, with a Range request [[RFC9110]]. It reads them in units that a writer appends whole:
+The RDF Message Log of a growing `tss:EmbeddedRDFSource`, and the data file of a growing `tss:CSVSource` or `tss:ArrowSource`, only grow when the source states `tss:rangeRequests true` ([[#range-opt-in]]). A consumer then does not download them again, but asks for the bytes after the ones it has read, with a Range request [[RFC9110]]. A consumer MUST NOT do so for a source that does not state `tss:rangeRequests true`: its earlier bytes may have changed. It reads them in units that a writer appends whole:
 
 <table class="data">
 <thead>
@@ -1176,14 +1195,10 @@ A consumer that follows such a resource:
     - `416 Range Not Satisfiable` with `Content-Range: bytes */L`: when *L* is *N*, nothing was added. When *L* is less than *N*, the resource shrank, and the consumer falls back (step 4).
     - `200 OK`: the server ignored the Range header and returned the whole representation. The consumer falls back (step 4) on that representation.
     - `410 Gone` or `404 Not Found`: the source is no longer served at this IRI; the consumer stops.
-4. Falls back when the new bytes cannot be read as expected: when they do not start with a complete unit, do not parse with the state it kept, or when the resource shrank. It drops its state, and reads the whole representation again from byte 0, as in step 1. It does not emit again a row whose time it has emitted already: the [=Key=] identifies a row.
+4. Falls back when the new bytes cannot be read as expected: when they do not start with a complete unit, do not parse with the state it kept, or when the resource shrank. It drops its state, and reads the whole representation again from byte 0, as in step 1. As in [[#following-full]], it does not emit again a row whose time it has emitted already.
 5. Repeats from step 2, as often as the caching rules allow ([[#polling]]), until the source is immutable: it states `tss:immutable true`, or, for an Arrow stream, the end-of-stream marker follows the last complete unit.
 
 A consumer MAY check that the bytes it read before did not change, by asking for `Range: bytes=(N-k)-` and comparing the first *k* bytes with the last *k* bytes it read. When they differ, it falls back (step 4). A server and a consumer MAY use an open-ended live range [[RFC8673]] to receive the new bytes as they are appended, without polling.
-
-## Embedded JSON rows ## {#following-json}
-
-The metadata document of a growing `tss:EmbeddedJSONSource` is not append-only: a [=Write=] rewrites `tss:points`. A consumer that follows it asks for the whole document again with a conditional request ([[#polling]]). The existing objects of `tss:points` do not change and stay in the same order ([[#updating-embedded]]): when the consumer has read *n* objects, it emits the objects after the first *n*. When the first *n* objects are not the ones it read, it falls back as in [[#range-requests]], step 4.
 
 # RDF Message Stream Profile # {#message-profile}
 
@@ -1282,6 +1297,7 @@ An engine takes the timestamp of each row message from `tss:time`, and its focus
 <tr><td><code>tss:DeltaFromBaseline</code></td><td>individual</td><td>value of <code>tss:valueEncoding</code></td><td>[[#value-encoding]]</td></tr>
 <tr><td><code>tss:MessageStreamProfile</code></td><td>individual, a <code>prof:Profile</code></td><td>object of <code>dcterms:conformsTo</code></td><td>[[#message-profile]]</td></tr>
 <tr><td><code>tss:immutable</code></td><td>property</td><td>source</td><td>[[#change]]</td></tr>
+<tr><td><code>tss:rangeRequests</code></td><td>property</td><td><code>tss:EmbeddedRDFSource</code>, <code>tss:CSVSource</code>, <code>tss:ArrowSource</code></td><td>[[#range-opt-in]]</td></tr>
 <tr><td><code>tss:hasField</code>, <code>tss:timeField</code>, <code>tss:key</code></td><td>property</td><td>source</td><td>[[#time-and-key]]</td></tr>
 <tr><td><code>tss:from</code>, <code>tss:until</code></td><td>property</td><td>source</td><td>[[#window]]</td></tr>
 <tr><td><code>tss:hasPoint</code></td><td>property</td><td><code>tss:EmbeddedRDFSource</code>, and any source when expanded</td><td>[[#rdf-points]], [[#expanding]]</td></tr>

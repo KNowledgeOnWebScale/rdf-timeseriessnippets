@@ -57,7 +57,7 @@ tss:EmbeddedRDFSource a owl:Class ;
 
 tss:ParquetSource a owl:Class ;
     rdfs:label "Parquet source"@en ;
-    rdfs:comment "A source whose readings are the rows of an external Apache Parquet data file (tss:dataFile). A Parquet file cannot be appended to, so a Parquet source always states tss:immutable true."@en ;
+    rdfs:comment "A source whose readings are the rows of an external Apache Parquet data file (tss:dataFile). A Parquet file cannot be appended to in place: a growing Parquet source is rewritten as a whole, and cannot state tss:rangeRequests true."@en ;
     rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -69,7 +69,7 @@ tss:CSVSource a owl:Class ;
 
 tss:ArrowSource a owl:Class ;
     rdfs:label "Arrow source"@en ;
-    rdfs:comment "A source whose readings are the rows of an external Apache Arrow data file (tss:dataFile), in the Arrow IPC streaming format or in the Arrow IPC file format. A growing Arrow source uses the streaming format, to which record batches can be appended; a source in the file format always states tss:immutable true."@en ;
+    rdfs:comment "A source whose readings are the rows of an external Apache Arrow data file (tss:dataFile), in the Arrow IPC streaming format or in the Arrow IPC file format. A source that states tss:rangeRequests true uses the streaming format, to which record batches are appended in place; a growing source in the file format is rewritten as a whole."@en ;
     rdfs:subClassOf tss:Source ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
 
@@ -152,7 +152,14 @@ tss:until a owl:DatatypeProperty, owl:FunctionalProperty ;
 
 tss:immutable a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:label "immutable"@en ;
-    rdfs:comment "true when the source is final: no reading is added, changed or removed, and its description does not change any more. false, or not stated, when the source is growing: it is append-only, so readings may be added, but none is changed or removed, and its description does not change. A source that states true never becomes growing again. A tss:ParquetSource, and a tss:ArrowSource whose data file is in the Arrow IPC file format, always state true. Named after ldes:immutable."@en ;
+    rdfs:comment "true when the source is final: no reading is added, changed or removed, and its description does not change any more. false, or not stated, when the source is growing: it is append-only, so readings may be added, but none is changed or removed, and its description does not change. A source that states true never becomes growing again. Named after ldes:immutable."@en ;
+    rdfs:domain tss:Source ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://w3id.org/tss#> .
+
+tss:rangeRequests a owl:DatatypeProperty, owl:FunctionalProperty ;
+    rdfs:label "range requests"@en ;
+    rdfs:comment "true when the publisher promises that, while the source grows, the bytes that hold its rows only grow: every representation of its RDF Message Log (tss:EmbeddedRDFSource) or data file (tss:CSVSource, or tss:ArrowSource in the IPC streaming format), without content coding, is a byte prefix of every later one, and the resource is not compressed as a whole. A consumer then follows the source with HTTP Range requests for the new bytes only. false, or not stated: the publisher may write the document or data file anew on every change, and a consumer reads it again as a whole."@en ;
     rdfs:domain tss:Source ;
     rdfs:range xsd:boolean ;
     rdfs:isDefinedBy <https://w3id.org/tss#> .
