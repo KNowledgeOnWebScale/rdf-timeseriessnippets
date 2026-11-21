@@ -11,3 +11,7 @@ Build the spec using [Bikeshed](https://speced.github.io/bikeshed):
 ```
 bikeshed spec spec.bs <output file>
 ```
+
+## Vocabulary
+
+The terms are in [tss.ttl](tss.ttl), under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

@@ -27,7 +27,8 @@
 <https://w3id.org/tss#> a owl:Ontology ;
     dcterms:title "RDF Time Series Sources"@en ;
     dcterms:description "Vocabulary for describing time series sources in RDF: a source, its fields and how to read their values, the summaries of those values, and the points of a source whose readings are embedded in its metadata."@en ;
-    dcterms:modified "2026-11-20"^^xsd:date ;
+    dcterms:modified "2026-11-21"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     rdfs:comment "This ontology lists the terms of the RDF Time Series Sources specification. The specification is normative: it states the cardinalities, the datatypes of the values and the other rules that this ontology does not express. Terms of other vocabularies are aligned with rdfs:subClassOf and rdfs:subPropertyOf where that holds without side effects, and with skos:closeMatch where the domain or range of the other term would not fit."@en ;
     rdfs:seeAlso <https://knowledgeonwebscale.github.io/rdf-tss/> ;
     dcterms:contributor <https://pietercolpaert.be/#me>, <https://www.linkedin.com/in/shehabeldeen-abdelfatah-289123365/> ;
